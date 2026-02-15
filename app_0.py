@@ -62,7 +62,7 @@ st.markdown("""
 
 def calcular_nero(falhas_ano: int, uso_min: float, t_conserto_min: float):
     """
-    Calcula o score NERO (Nikollas-Euler Risk Observer).
+    Calcula o score NERO (Euler Risk Observer).
     Fórmula base: P = (e^(lambda * alpha)) / U
     """
     # Proteção: Uso não pode ser zero absoluto para evitar divisão por zero
@@ -150,7 +150,7 @@ if pagina == "🏠 Página Inicial":
     
     st.markdown("### O paradigma da Inércia como Estresse")
     st.write("""
-    Na engenharia de confiabilidade tradicional (como o MTBF), o risco de falha costuma ser tratado de forma estática e linear. O modelo **NERO (Nikollas-Euler Risk Observer)** subverte essa lógica baseando-se em uma premissa fundamental: **o equipamento ocioso não é um equipamento seguro**. A ausência de uso, na verdade, acumula incertezas e potencializa panes ocultas.
+    Na engenharia de confiabilidade tradicional (como o MTBF), o risco de falha costuma ser tratado de forma estática e linear. O modelo **NERO (Euler Risk Observer)** subverte essa lógica baseando-se em uma premissa fundamental: **o equipamento ocioso não é um equipamento seguro**. A ausência de uso, na verdade, acumula incertezas e potencializa panes ocultas.
     """)
     
     st.markdown("<br>", unsafe_allow_html=True)
@@ -367,3 +367,4 @@ elif pagina == "⚙️ Dashboard NERO":
             
             A máquina precisa "provar" sua higidez mecânica através da atividade (denominador $U$). Um equipamento que apresentou mais falhas históricas, porém opera 12 horas diárias sob intensa validação contínua, muitas vezes demonstra maior estabilidade do que aquele que girou os motores por meros minutos após sair da oficina na mesma semana.
             """)
+
