@@ -114,7 +114,7 @@ def get_status_visual(p_score):
 with st.sidebar:
     st.image("https://cdn-icons-png.flaticon.com/512/2091/2091665.png", width=60) # Ícone genérico de escudo/dados
     st.title("NERO Pro")
-    st.caption("Nikollas-Euler Risk Observer")
+    st.caption("Euler Risk Observer")
     
     # Navegação entre páginas
     pagina = st.radio("Navegação", ["🏠 Página Inicial", "⚙️ Dashboard NERO"], label_visibility="collapsed")
@@ -367,4 +367,5 @@ elif pagina == "⚙️ Dashboard NERO":
             
             A máquina precisa "provar" sua higidez mecânica através da atividade (denominador $U$). Um equipamento que apresentou mais falhas históricas, porém opera 12 horas diárias sob intensa validação contínua, muitas vezes demonstra maior estabilidade do que aquele que girou os motores por meros minutos após sair da oficina na mesma semana.
             """)
+
 
