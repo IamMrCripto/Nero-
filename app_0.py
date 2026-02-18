@@ -5,7 +5,7 @@ import numpy as np
 
 # --- 1. CONFIGURAÇÃO DA PÁGINA ---
 st.set_page_config(
-    page_title="NERO: Risk Observer Pro",
+    page_title="NERO Pro: Risk Observer",
     page_icon="🛡️",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -14,91 +14,102 @@ st.set_page_config(
 # --- 2. ESTILIZAÇÃO CSS (DESIGN SYSTEM PREMIUM) ---
 st.markdown("""
 <style>
-    /* Containers de Métricas */
-    div[data-testid="metric-container"] {
-        background-color: #f8fafc;
-        border: 1px solid #e2e8f0;
-        padding: 15px;
-        border-radius: 12px;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    /* Tipografia e Fundo Geral */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
+    html, body, [class*="css"] {
+        font-family: 'Inter', sans-serif;
     }
     
-    /* Destaque para resultados positivos */
-    .success-box {
-        background-color: #dcfce7;
-        color: #166534;
-        padding: 20px;
-        border-radius: 10px;
-        border-left: 8px solid #166534;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    
-    /* Destaque para resultados negativos */
-    .warning-box {
-        background-color: #fee2e2;
-        color: #991b1b;
-        padding: 20px;
-        border-radius: 10px;
-        border-left: 8px solid #991b1b;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    /* Headers com Gradiente */
+    .gradient-text {
+        background: linear-gradient(90deg, #1E293B 0%, #3B82F6 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 800;
     }
 
-    /* Títulos */
-    h1, h2, h3 { font-family: 'Helvetica Neue', sans-serif; color: #1e293b; }
-    
-    /* Cards da Home */
-    .home-card {
-        background: white;
-        padding: 25px;
-        border-radius: 10px;
-        border: 1px solid #e2e8f0;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    /* Cards Modernos */
+    .modern-card {
+        background: #ffffff;
+        padding: 24px;
+        border-radius: 16px;
+        border: 1px solid #E2E8F0;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
         height: 100%;
     }
+    .modern-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+    
+    /* Containers de Status (Sucesso/Aviso/Crítico) */
+    .status-badge {
+        display: inline-block;
+        padding: 6px 14px;
+        border-radius: 9999px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+    }
+    
+    .success-box {
+        background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+        color: #166534;
+        padding: 20px;
+        border-radius: 12px;
+        border-left: 6px solid #166534;
+    }
+
+    .warning-box {
+        background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+        color: #991b1b;
+        padding: 20px;
+        border-radius: 12px;
+        border-left: 6px solid #991b1b;
+    }
+    
+    /* Ocultar elementos padrão do Streamlit para visual mais limpo */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
 </style>
 """, unsafe_allow_html=True)
 
-# --- 3. CORE: MOTOR MATEMÁTICO NERO ---
 
+# --- 3. CORE: MOTOR MATEMÁTICO NERO ---
 def calcular_nero(falhas_ano: int, uso_min: float, t_conserto_min: float):
-    """
-    Calcula o score NERO (Euler Risk Observer).
-    Fórmula base: P = (e^(lambda * alpha)) / U
-    """
-    # Proteção: Uso não pode ser zero absoluto para evitar divisão por zero
-    if uso_min <= 0.1: 
-        uso_min = 0.1 
-    
+    """Calcula o score NERO (Euler Risk Observer)."""
+    # Proteção: Uso não pode ser zero absoluto
+    uso_min = max(uso_min, 0.1)
+
     # 1. Lambda (Taxa de Falhas Anual Normalizada)
     lambd = falhas_ano / 365.0
-    
+
     # 2. Alpha (Coeficiente de Estresse Sistêmico)
-    # AJUSTE MATEMÁTICO: Limite Tc -> 0 (Suavização Logarítmica)
-    if t_conserto_min <= 0.1: # Considerado limite tendendo a zero
-        # Tira-se o ln do módulo de U para evitar explosão numérica e achatar a curva suavemente
-        alpha = math.log(abs(uso_min)) 
+    if t_conserto_min <= 0.1:
+        alpha = math.log(abs(uso_min))
     elif t_conserto_min == uso_min:
         alpha = abs(t_conserto_min + 1 - uso_min) / (t_conserto_min + 1)
     else:
         alpha = abs(t_conserto_min - uso_min) / (t_conserto_min + 1)
-    
+
     # 3. Potencial de Risco (P)
     try:
         exponent = lambd * alpha
-        # Proteção contra Overflow matemático (números astronômicos)
-        if exponent > 700: 
+        if exponent > 700:
             p_score = float('inf')
         else:
             p_score = math.exp(exponent) / uso_min
     except Exception:
         p_score = float('inf')
-        
+
     return p_score, lambd, alpha
 
+
 def get_status_visual(p_score):
-    """Retorna metadados visuais baseados no risco NERO (Quanto mais perto de 0, melhor)."""
     if p_score == float('inf'):
-        return "CRÍTICO EXTREMO", "#991b1b", "⛔"
+        return "CRÍTICO EXTREMO", "#7f1d1d", "⛔"
     elif p_score > 0.01:
         return "CRÍTICO", "#dc2626", "🔴"
     elif p_score > 0.005:
@@ -110,262 +121,260 @@ def get_status_visual(p_score):
 
 
 # --- 4. SIDEBAR: NAVEGAÇÃO E DADOS ---
-
 with st.sidebar:
-    st.image("https://cdn-icons-png.flaticon.com/512/2091/2091665.png", width=60) # Ícone genérico de escudo/dados
-    st.title("NERO Pro")
-    st.caption("Euler Risk Observer")
-    
-    # Navegação entre páginas
-    pagina = st.radio("Navegação", ["🏠 Página Inicial", "⚙️ Dashboard NERO"], label_visibility="collapsed")
-    
+    st.markdown("<h1 style='text-align: center; font-size: 2.5em;'>🛡️</h1>", unsafe_allow_html=True)
+    st.markdown("<h2 style='text-align: center; margin-bottom: 0;'>NERO Pro</h2>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; color: #64748b; font-size: 0.9em;'>Euler Risk Observer</p>", unsafe_allow_html=True)
     st.divider()
+    
+    pagina = st.radio(
+        "Navegação", 
+        ["🏠 Visão Geral", "⚙️ Dashboard de Ativos", "⚖️ Comparador de Marcas"], 
+        label_visibility="collapsed"
+    )
 
-    if pagina == "⚙️ Dashboard NERO":
+    if pagina == "⚙️ Dashboard de Ativos":
+        st.divider()
         st.subheader("🛠️ Parâmetros do Ativo")
-        nome_ativo = st.text_input("Identificação", "Elevador de Alto Tráfego")
+        nome_ativo = st.text_input("Identificação", "Motor Industrial AC-200")
         
         col1, col2 = st.columns(2)
         with col1:
-            falhas_in = st.number_input("Falhas/Ano", min_value=0, value=15, help="Soma total de panes no período de 365 dias.")
+            falhas_in = st.number_input("Falhas/Ano", min_value=0, value=5)
         with col2:
-            dias_in = st.number_input("Dias s/ Conserto", min_value=0, value=20, help="Tempo desde a última manutenção corretiva.")
-        
-        uso_horas_in = st.slider("Uso Diário Médio (h)", 0.5, 24.0, 12.0, 0.5)
-        
-        st.markdown("---")
-        st.info("💡 **Dica:** O modelo penaliza a inatividade. Mais uso contínuo ajuda na auto-validação do sistema.")
+            dias_in = st.number_input("Dias s/ Conserto", min_value=0, value=30)
+            
+        uso_horas_in = st.slider("Uso Diário Médio (h)", 0.5, 24.0, 8.0, 0.5)
 
 
 # --- 5. ROTEAMENTO DE PÁGINAS ---
 
-if pagina == "🏠 Página Inicial":
+if pagina == "🏠 Visão Geral":
     # --- PÁGINA INICIAL ---
     st.markdown("""
-        <div style="text-align: center; padding: 40px 0;">
-            <h1 style="font-size: 3.5em; margin-bottom: 0; color: #0f172a;">NERO Pro 🛡️</h1>
-            <h3 style="color: #64748b; font-weight: 400; margin-top: 10px;">A evolução estocástica na Confiabilidade de Equipamentos</h3>
-        </div>
+    <div style="text-align: center; padding: 60px 20px;">
+        <h1 class="gradient-text" style="font-size: 4em; margin-bottom: 10px;">A Matemática da Confiabilidade</h1>
+        <h3 style="color: #475569; font-weight: 400; font-size: 1.5em; max-width: 800px; margin: 0 auto;">
+            O NERO Pro modela o risco de falhas através da lente dos <b>Sistemas Dinâmicos</b>. Aqui, a integridade do seu maquinário é uma métrica viva.
+        </h3>
+    </div>
     """, unsafe_allow_html=True)
+
+    col_img, col_txt = st.columns([1, 1.2], gap="large")
     
-    st.markdown("### O paradigma da Inércia como Estresse")
-    st.write("""
-    Na engenharia de confiabilidade tradicional (como o MTBF), o risco de falha costuma ser tratado de forma estática e linear. O modelo **NERO (Euler Risk Observer)** subverte essa lógica baseando-se em uma premissa fundamental: **o equipamento ocioso não é um equipamento seguro**. A ausência de uso, na verdade, acumula incertezas e potencializa panes ocultas.
-    """)
-    
-    st.markdown("<br>", unsafe_allow_html=True)
+    with col_img:
+        st.markdown("""
+        <div class="modern-card" style="background: linear-gradient(145deg, #1e293b, #0f172a); color: white;">
+            <h2 style="color: white; margin-top: 0;">O Paradigma NERO</h2>
+            <p style="font-size: 1.1em; color: #cbd5e1; line-height: 1.6;">
+                Na engenharia clássica, medimos a quebra apenas pelo histórico (MTBF). O modelo NERO subverte isso com uma regra de ouro dos sistemas dinâmicos:<br><br>
+                <b style="color: #60a5fa; font-size: 1.2em;">"O ócio degrada. O uso valida."</b><br><br>
+                Um equipamento parado acumula incertezas e estresse sistêmico. O NERO calcula o risco em tempo real, provando matematicamente que operar constantemente é mais seguro do que repousar sem validação.
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with col_txt:
+        st.markdown("### Como o Algoritmo Funciona?")
+        st.write("A fórmula baseia-se em leis de dissipação estocástica (semelhantes ao resfriamento de Newton):")
+        st.latex(r"P = \frac{e^{(\lambda \cdot \alpha)}}{U}")
+        st.markdown("""
+        * **$P$ (Potencial de Risco):** Nosso placar. Quanto mais perto de zero, mais seguro o equipamento.
+        * **$\lambda$ (Lambda):** Taxa normalizada de falhas anuais.
+        * **$\alpha$ (Alpha):** Coeficiente de Estresse. É o cabo de guerra entre o tempo sem conserto ($T$) e o uso diário ($U$). Se a inércia vence, $\alpha$ sobe exponencialmente.
+        * **$U$ (Uso):** O denominador que "salva" o equipamento. Mais horas de uso diluem o risco.
+        """)
+
+    st.markdown("<br><hr style='border-color: #e2e8f0;'><br>", unsafe_allow_html=True)
     
     # Cards de Benefícios
     c1, c2, c3 = st.columns(3)
     with c1:
         st.markdown("""
-        <div class="home-card">
-            <h3 style="margin-top:0;">⏳ Dinamismo Temporal</h3>
-            <p style="color: #475569;">O tempo ocioso atua como um catalisador no coeficiente de estresse. O modelo calcula o risco de falha em tempo real baseado no desgaste pela ausência de validação operacional.</p>
+        <div class="modern-card">
+            <h3 class="gradient-text" style="margin-top:0;">⏳ Tempo como Variável</h3>
+            <p style="color: #64748b;">Na teoria dos sistemas dinâmicos, o estado de uma máquina evolui no tempo. O NERO precifica a ausência de uso como um catalisador de panes ocultas.</p>
         </div>
         """, unsafe_allow_html=True)
     with c2:
         st.markdown("""
-        <div class="home-card">
-            <h3 style="margin-top:0;">🧮 Prevenção de Overflow</h3>
-            <p style="color: #475569;">Através de <b>suavização logarítmica</b> e limites matemáticos controlados (como quando o tempo sem conserto tende a zero), a fórmula NERO previne explosões numéricas (assíntotas).</p>
+        <div class="modern-card">
+            <h3 class="gradient-text" style="margin-top:0;">🧮 Proteção Algorítmica</h3>
+            <p style="color: #64748b;">Utilizamos suavização logarítmica ($T \\to 0$) para evitar assíntotas e explosões matemáticas, garantindo gráficos e métricas perfeitamente estáveis.</p>
         </div>
         """, unsafe_allow_html=True)
     with c3:
         st.markdown("""
-        <div class="home-card">
-            <h3 style="margin-top:0;">🔄 Simulador What-If</h3>
-            <p style="color: #475569;">Permite aos engenheiros testar cenários hipotéticos de carga horária para entender matematicamente qual regime de uso mantém o maquinário na "zona de confiabilidade".</p>
+        <div class="modern-card">
+            <h3 class="gradient-text" style="margin-top:0;">⚖️ Tomada de Decisão</h3>
+            <p style="color: #64748b;">Através dos simuladores e comparadores, engenheiros e gestores descobrem instantaneamente qual regime de manutenção reduz custos e previne acidentes.</p>
         </div>
         """, unsafe_allow_html=True)
-        
-    st.markdown("<br><hr><br>", unsafe_allow_html=True)
-    st.info("👈 **Comece a análise selecionando '⚙️ Dashboard NERO' no menu lateral esquerdo.**")
 
-elif pagina == "⚙️ Dashboard NERO":
-    # --- LÓGICA DE CÁLCULO DO DASHBOARD ---
+
+elif pagina == "⚙️ Dashboard de Ativos":
+    # --- LÓGICA DE CÁLCULO ---
     uso_min_atual = uso_horas_in * 60
     t_conserto_min_atual = dias_in * 1440
-
     p_atual, lambd_atual, alpha_atual = calcular_nero(falhas_in, uso_min_atual, t_conserto_min_atual)
     status_txt, status_cor, status_icon = get_status_visual(p_atual)
 
     # --- HEADER DO DASHBOARD ---
-    col_kpi_main, col_kpi_desc = st.columns([1, 2])
-
-    with col_kpi_main:
+    st.markdown(f"## Análise em Tempo Real: **{nome_ativo}**")
+    
+    col_kpi, col_info = st.columns([1, 2.5])
+    with col_kpi:
         st.markdown(f"""
-        <div style="background-color: {status_cor}; padding: 25px; border-radius: 12px; color: white; text-align: center; box-shadow: 0 6px 15px rgba(0,0,0,0.15);">
-            <p style="margin:0; font-size: 1em; opacity: 0.9; text-transform: uppercase; letter-spacing: 1px;">Status de Risco</p>
-            <h2 style="margin:10px 0; font-size: 2.2em; color: white;">{status_icon} {status_txt}</h2>
-            <div style="background: rgba(255,255,255,0.2); padding: 8px; border-radius: 8px; display: inline-block;">
-                <p style="margin:0; font-weight:bold; font-size: 1.2em;">Índice P: {p_atual:.6f}</p>
+        <div class="modern-card" style="border-top: 6px solid {status_cor}; text-align: center;">
+            <p style="color: #64748b; font-size: 0.9em; font-weight: 600; text-transform: uppercase; margin: 0;">Índice NERO (P)</p>
+            <h2 style="font-size: 2.5em; color: #1e293b; margin: 10px 0;">{p_atual:.5f}</h2>
+            <div style="background: {status_cor}20; color: {status_cor};" class="status-badge">
+                {status_icon} {status_txt}
             </div>
         </div>
         """, unsafe_allow_html=True)
-        
-    with col_kpi_desc:
-        st.markdown(f"## Diagnóstico Ativo: {nome_ativo}")
-        st.markdown(f"O modelo NERO avalia seu equipamento assumindo que a **inércia gera incerteza estocástica**. "
-                    f"Neste instante, o coeficiente de estresse sistêmico ($\\alpha$) é de **{alpha_atual:.3f}**. "
-                    f"Com um <i>uptime</i> diário de {uso_horas_in}h, a integridade operacional está classificada no status **{status_txt}**.")
-        
+
+    with col_info:
+        st.markdown("<div class='modern-card'>", unsafe_allow_html=True)
         c1, c2, c3 = st.columns(3)
-        c1.metric("Taxa de Falha Normalizada (λ)", f"{lambd_atual:.4f}")
-        c2.metric("Estresse Sistêmico (α)", f"{alpha_atual:.3f}")
-        c3.metric("Uso Diário (Minutos)", f"{uso_min_atual:.0f} min")
+        c1.metric("Taxa Normalizada (λ)", f"{lambd_atual:.4f}", help="Falhas diluídas no ano")
+        c2.metric("Estresse Sistêmico (α)", f"{alpha_atual:.3f}", help="Relação entre ociosidade e uso")
+        c3.metric("Tempo de Validação", f"{uso_min_atual:.0f} min/dia", help="Tempo diário mitigando o estresse")
+        st.markdown("</div>", unsafe_allow_html=True)
 
-    st.markdown("---")
+    st.markdown("<br>", unsafe_allow_html=True)
 
-    # --- ABAS DE FERRAMENTAS ---
-    tab_simulador, tab_grafico, tab_teoria = st.tabs([
-        "🧪 Simulador de Cenários (What-If)", 
-        "📈 Curva de Degradação (Gráfico Dinâmico)", 
-        "📘 Entendendo a Fórmula NERO"
-    ])
+    tab_grafico, tab_simulador = st.tabs(["📉 Curva de Degradação (Sistemas Dinâmicos)", "🧪 Simulador What-If"])
 
-    # --- ABA 1: SIMULADOR ---
-    with tab_simulador:
-        st.markdown("### 🛠️ Estipulação de Nova Realidade Operacional")
-        st.write("Teste se um novo regime de uso ou frequência de manutenção **aumenta ou diminui a confiabilidade** do sistema.")
-        
-        col_orig, col_arrow, col_sim = st.columns([4, 1, 4])
-        
-        with col_orig:
-            st.info("🔒 **Cenário Atual (Baseline)**")
-            st.text_input("Uso Diário Atual", f"{uso_horas_in} horas", disabled=True)
-            st.text_input("Dias s/ Conserto Atual", f"{dias_in} dias", disabled=True)
-            st.text_input("Falhas Anuais Atual", f"{falhas_in}", disabled=True)
-            st.markdown(f"**Índice de Risco (P):** `{p_atual:.6f}`")
-
-        with col_arrow:
-            st.markdown("<div style='text-align: center; margin-top: 100px; font-size: 50px; color: #cbd5e1;'>➡️</div>", unsafe_allow_html=True)
-
-        with col_sim:
-            st.warning("✏️ **Novo Cenário (Alvo)**")
-            novo_uso = st.number_input("Novo Uso Diário (Horas)", 0.5, 24.0, float(max(1.0, uso_horas_in - 5)), step=0.5)
-            novos_dias = st.number_input("Novo Tempo s/ Conserto (Dias)", 0, 3650, int(max(0, dias_in - 10)))
-            novas_falhas = st.number_input("Nova Taxa de Falhas (Ano)", 0, 1000, int(falhas_in))
-            
-            p_novo, lambd_novo, alpha_novo = calcular_nero(novas_falhas, novo_uso * 60, novos_dias * 1440)
-            st.markdown(f"**Novo Índice (P):** `{p_novo:.6f}`")
-
-        st.divider()
-
-        if p_atual > 0:
-            variacao_risco = ((p_novo - p_atual) / p_atual) * 100 
-        else:
-            variacao_risco = 0
-
-        st.markdown("### 📊 Veredito NERO")
-        
-        if p_novo < p_atual:
-            melhoria_seguranca = abs(variacao_risco)
-            st.markdown(f"""
-            <div class="success-box">
-                <h3 style="margin-top:0;">📈 CONFIABILIDADE SUPERIOR</h3>
-                <p>O novo cenário reduziu o Índice de Risco de <b>{p_atual:.6f}</b> para <b>{p_novo:.6f}</b>.</p>
-                <p>O aparelho apresenta uma <b>melhoria de confiabilidade de aproximadamente {melhoria_seguranca:.1f}%</b>. O aumento do uso e/ou a redução do tempo ocioso permitem uma validação orgânica e mais firme da integridade do sistema.</p>
-            </div>
-            """, unsafe_allow_html=True)
-        elif p_novo > p_atual:
-            piora_seguranca = abs(variacao_risco)
-            st.markdown(f"""
-            <div class="warning-box">
-                <h3 style="margin-top:0;">📉 CONFIABILIDADE INFERIOR</h3>
-                <p>O novo cenário elevou o Índice de Risco de <b>{p_atual:.6f}</b> para <b>{p_novo:.6f}</b>.</p>
-                <p>Cuidado: Este regime deixa o equipamento <b>{piora_seguranca:.1f}% mais perigoso</b>. A ociosidade alongada atua como um catalisador de falhas imprevistas.</p>
-            </div>
-            """, unsafe_allow_html=True)
-        else:
-            st.info("A alteração proposta mantém o equipamento no exato mesmo nível de risco estocástico.")
-
-    # --- ABA 2: GRÁFICO (PLOTLY) ---
     with tab_grafico:
-        st.markdown(f"### 📉 Evolução do Potencial de Risco (P)")
-        st.write("Projeção de degradação: assume-se que as falhas e o uso diário se mantenham estáticos frente ao avanço dos dias sem conserto.")
+        st.write("Visualização da degradação estocástica: o que acontece com a confiabilidade se o equipamento não receber manutenção nos próximos dias, mantendo o uso atual?")
         
-        dias_projecao = max(dias_in + 60, 100)
-        eixo_x = np.linspace(0, dias_projecao, 150)
-        eixo_y_atual = []
-        
-        limite_visual = 0.02 
-        
-        for d in eixo_x:
-            val, _, _ = calcular_nero(falhas_in, uso_min_atual, d * 1440)
-            eixo_y_atual.append(min(val, limite_visual * 2))
-            
+        dias_projecao = max(dias_in + 90, 100)
+        eixo_x = np.linspace(0, dias_projecao, 200)
+        eixo_y = [min(calcular_nero(falhas_in, uso_min_atual, d * 1440)[0], 0.02) for d in eixo_x]
+
         fig = go.Figure()
+        
+        # Zonas com gradiente simulado
+        fig.add_hrect(y0=0, y1=0.005, fillcolor="#10b981", opacity=0.1, line_width=0, annotation_text="Ideal")
+        fig.add_hrect(y0=0.005, y1=0.01, fillcolor="#f59e0b", opacity=0.1, line_width=0, annotation_text="Alerta")
+        fig.add_hrect(y0=0.01, y1=0.02, fillcolor="#ef4444", opacity=0.1, line_width=0, annotation_text="Crítico")
 
-        # Zonas de Risco
-        fig.add_hrect(y0=0, y1=0.005, fillcolor="#dcfce7", opacity=0.3, layer="below", line_width=0, annotation_text="Zona Operacional")
-        fig.add_hrect(y0=0.005, y1=0.01, fillcolor="#fef08a", opacity=0.3, layer="below", line_width=0, annotation_text="Zona de Alerta")
-        fig.add_hrect(y0=0.01, y1=limite_visual*2, fillcolor="#fee2e2", opacity=0.3, layer="below", line_width=0, annotation_text="Zona Crítica")
-
-        # Curva
+        # Linha principal com preenchimento
         fig.add_trace(go.Scatter(
-            x=eixo_x, y=eixo_y_atual,
+            x=eixo_x, y=eixo_y,
             mode='lines',
-            name='Degradação Estocástica',
-            line=dict(color='#1e293b', width=4),
-            hovertemplate='Dias sem Conserto: %{x:.0f}<br>Índice NERO: %{y:.6f}<extra></extra>'
+            name='Trajetória de Risco',
+            line=dict(color='#3b82f6', width=4, shape='spline'),
+            fill='tozeroy',
+            fillcolor='rgba(59, 130, 246, 0.1)',
+            hovertemplate='Dias s/ Manutenção: %{x:.0f}<br>Risco NERO: %{y:.5f}<extra></extra>'
         ))
 
         # Ponto Atual
         fig.add_trace(go.Scatter(
             x=[dias_in], y=[p_atual],
             mode='markers+text',
-            name='Situação Atual',
-            marker=dict(color=status_cor, size=18, line=dict(color='white', width=3)),
+            name='Status Atual',
+            marker=dict(color=status_cor, size=16, line=dict(color='white', width=3)),
             text=['VOCÊ ESTÁ AQUI'],
             textposition='top left',
-            textfont=dict(size=14, color=status_cor, family="Arial Black")
+            textfont=dict(color=status_cor, size=12, family="Inter")
         ))
 
         fig.update_layout(
-            title=f"Risco vs. Dias de Ociosidade (Uso Fixo: {uso_horas_in}h/dia)",
-            xaxis_title="Tempo desde a última manutenção (Dias)",
-            yaxis_title="Índice de Risco NERO (P)",
             hovermode="x unified",
-            height=500,
-            margin=dict(l=20, r=20, t=50, b=20),
-            plot_bgcolor="white"
+            height=450,
+            margin=dict(l=0, r=0, t=30, b=0),
+            plot_bgcolor="rgba(0,0,0,0)",
+            paper_bgcolor="rgba(0,0,0,0)",
+            xaxis=dict(title="Dias desde a última manutenção", showgrid=True, gridcolor='#f1f5f9'),
+            yaxis=dict(title="Índice de Risco (P)", showgrid=True, gridcolor='#f1f5f9', range=[0, 0.022])
         )
-        fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor='rgba(0,0,0,0.1)')
-        fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor='rgba(0,0,0,0.1)', range=[0, min(max(eixo_y_atual)*1.1, limite_visual)])
-
         st.plotly_chart(fig, use_container_width=True)
 
-    # --- ABA 3: TEORIA DO MODELO NERO (CORRIGIDA) ---
-    with tab_teoria:
-        col_t1, col_t2 = st.columns([1.5, 1])
+    with tab_simulador:
+        st.markdown("### Teste de Regime Operacional")
+        st.write("Descubra se alterar a carga de trabalho ou a rotina de manutenção afeta positiva ou negativamente a máquina.")
         
-        with col_t1:
-            st.markdown("### A Matemática da Dissipação por Uso")
-            st.write("A gênese do modelo NERO inspira-se nos padrões naturais da constante de Euler e na lei de resfriamento de Newton, estabelecendo a premissa de que o risco de pane é um estado que se autoalimenta durante o repouso do maquinário.")
+        col_s1, col_s2, col_s3 = st.columns([1, 0.2, 1])
+        with col_s1:
+            st.info(f"**Cenário Atual:**\n\nUso: {uso_horas_in}h | Manutenção: {dias_in} dias atrás\nRisco: **{p_atual:.5f}**")
+        
+        with col_s2:
+            st.markdown("<h2 style='text-align: center; color: #cbd5e1; margin-top: 10px;'>→</h2>", unsafe_allow_html=True)
             
-            st.markdown("#### Equação Fundamental:")
-            # Renderização nativa do Streamlit para LaTeX (Display Mode)
-            st.latex(r"P = \frac{e^{(\lambda \cdot \alpha)}}{U}")
+        with col_s3:
+            novo_uso = st.slider("Novo Uso (h/dia)", 0.5, 24.0, float(max(1.0, uso_horas_in - 2)), 0.5, key="sim_uso")
+            novos_dias = st.number_input("Novos Dias s/ Conserto", 0, 365, int(max(0, dias_in - 10)), key="sim_dias")
             
-            st.markdown("""
-            **Composição Variável:**
-            * **$P$**: Potencial de Risco Sistêmico (Quanto mais perto de zero, maior a segurança).
-            * **$\lambda$** (Lambda): Taxa de falhas anuais normalizada ($\sum \text{Falhas} / 365$).
-            * **$\alpha$** (Alpha): Coeficiente de Estresse Sistêmico. Definido ordinariamente por $\\frac{|T-U|}{T+1}$.
-              * **⚠️ Regra de Suavização Logarítmica:** No limite em que $T$ tende a 0, $\\alpha$ tenderia irrestritamente ao módulo de $U$. Para evitar explosões numéricas (assíntotas) e aproveitar a capacidade matemática do logaritmo de estabilizar funções agressivas, **o algoritmo calcula $\\alpha = \ln(|U|)$ se, e somente se, $T \\to 0$.**
-              * Além disso, caso haja simetria total ($T = U$), a base temporal é reajustada para $T+1$.
-            * **$U$**: Tempo contínuo de uso diário em minutos (A variável que "conquista" a confiabilidade).
-            * **$T$**: Tempo desde o último conserto em minutos (A variável que "catalisa" a incerteza).
-            """)
+        p_novo, _, _ = calcular_nero(falhas_in, novo_uso * 60, novos_dias * 1440)
+        
+        st.divider()
+        if p_novo < p_atual:
+            melhoria = abs(((p_novo - p_atual) / p_atual) * 100)
+            st.markdown(f"""<div class="success-box"><b>📈 CONFIABILIDADE OTIMIZADA:</b> O risco caiu para <b>{p_novo:.5f}</b> (Melhoria de {melhoria:.1f}%). 
+            Aumentar a validação pelo uso ou encurtar a manutenção estabilizou o sistema.</div>""", unsafe_allow_html=True)
+        elif p_novo > p_atual:
+            piora = abs(((p_novo - p_atual) / p_atual) * 100)
+            st.markdown(f"""<div class="warning-box"><b>📉 CUIDADO:</b> O risco subiu para <b>{p_novo:.5f}</b> (Piora de {piora:.1f}%). 
+            Esse regime de operação favorece o acúmulo de incertezas sistêmicas.</div>""", unsafe_allow_html=True)
+        else:
+            st.info("Risco estagnado. O sistema dinâmico se manteve em equilíbrio perfeito na transição.")
 
-        with col_t2:
-            st.info("""
-            💡 **O Trunfo do Modelo NERO**
-            
-            Um sistema eletromecânico, mesmo em repouso, avança rumo à entropia. A genialidade da fórmula está em mostrar que **um conserto recente não é sinônimo imutável de segurança**. 
-            
-            A máquina precisa "provar" sua higidez mecânica através da atividade (denominador $U$). Um equipamento que apresentou mais falhas históricas, porém opera 12 horas diárias sob intensa validação contínua, muitas vezes demonstra maior estabilidade do que aquele que girou os motores por meros minutos após sair da oficina na mesma semana.
-            """)
+
+elif pagina == "⚖️ Comparador de Marcas":
+    # --- NOVA ABA: COMPARADOR DE MARCAS ---
+    st.markdown("## ⚖️ Comparador Estocástico de Marcas")
+    st.write("Insira os dados históricos de dois fabricantes diferentes para descobrir qual aparelho suporta melhor o regime de trabalho da sua empresa com base na equação NERO.")
+    
+    col_marca_a, col_vs, col_marca_b = st.columns([1, 0.1, 1])
+    
+    with col_marca_a:
+        st.markdown("<div class='modern-card' style='border-top: 4px solid #3b82f6;'>", unsafe_allow_html=True)
+        st.markdown("### Marca A")
+        nome_a = st.text_input("Nome", "TechCorp Premium", key="nome_a")
+        falhas_a = st.number_input("Média de Falhas/Ano", 0, 100, 3, key="falhas_a")
+        dias_a = st.number_input("Tempo Típico p/ Falhar (Dias)", 0, 1000, 120, key="dias_a")
+        uso_a = st.number_input("Horas de Uso/Dia", 1.0, 24.0, 10.0, key="uso_a")
+        
+        p_a, _, _ = calcular_nero(falhas_a, uso_a * 60, dias_a * 1440)
+        status_txt_a, color_a, _ = get_status_visual(p_a)
+        
+        st.markdown(f"<br><h4 style='color: #64748b;'>Score NERO</h4>", unsafe_allow_html=True)
+        st.markdown(f"<h2 style='color: {color_a};'>{p_a:.5f}</h2>", unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True)
+
+    with col_vs:
+        st.markdown("<h2 style='text-align: center; color: #cbd5e1; margin-top: 150px;'>VS</h2>", unsafe_allow_html=True)
+
+    with col_marca_b:
+        st.markdown("<div class='modern-card' style='border-top: 4px solid #f59e0b;'>", unsafe_allow_html=True)
+        st.markdown("### Marca B")
+        nome_b = st.text_input("Nome", "ElectroMax Genérica", key="nome_b")
+        falhas_b = st.number_input("Média de Falhas/Ano", 0, 100, 12, key="falhas_b")
+        dias_b = st.number_input("Tempo Típico p/ Falhar (Dias)", 0, 1000, 45, key="dias_b")
+        uso_b = st.number_input("Horas de Uso/Dia", 1.0, 24.0, 10.0, key="uso_b")
+        
+        p_b, _, _ = calcular_nero(falhas_b, uso_b * 60, dias_b * 1440)
+        status_txt_b, color_b, _ = get_status_visual(p_b)
+        
+        st.markdown(f"<br><h4 style='color: #64748b;'>Score NERO</h4>", unsafe_allow_html=True)
+        st.markdown(f"<h2 style='color: {color_b};'>{p_b:.5f}</h2>", unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True)
+
+    st.divider()
+    
+    # Veredito
+    st.markdown("### Veredito do Sistema")
+    if p_a < p_b:
+        vantagem = ((p_b - p_a) / p_b) * 100
+        st.success(f"🏆 A marca **{nome_a}** é mais confiável neste cenário operacional. Ela apresenta um risco **{vantagem:.1f}% menor** de falha crítica comparada à {nome_b}.")
+    elif p_b < p_a:
+        vantagem = ((p_a - p_b) / p_a) * 100
+        st.success(f"🏆 A marca **{nome_b}** é mais confiável neste cenário operacional. Ela apresenta um risco **{vantagem:.1f}% menor** de falha crítica comparada à {nome_a}.")
+    else:
+        st.info("⚖️ Ambas as marcas apresentam o exato mesmo potencial de risco (Empate Técnico).")
+
 
 
