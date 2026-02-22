@@ -76,31 +76,24 @@ def calcular_nero(falhas_ano: int, uso_min: float, t_conserto_min: float):
     lambd = falhas_ano / 365.0
     
     # 2. Alpha (Coeficiente de Estresse Sistêmico)
-    if t_conserto_min <= 0.1:
-        # Permite divergência natural se uso for nulo
-        alpha = math.log(abs(uso_min)) if uso_min > 0 else 0 
-    elif t_conserto_min == uso_min:
-        alpha = abs(t_conserto_min + 1 - uso_min) / (t_conserto_min + 1)
-    else:
-        alpha = abs(t_conserto_min - uso_min) / (t_conserto_min + 1)
+    # Garante que o risco suba proporcionalmente ao tempo sem manutenção
+    alpha = t_conserto_min / (uso_min + 1)
 
     # 3. Potencial de Risco (P) - ACEITAÇÃO DA DIVERGÊNCIA
     try:
-        # Passo 1: Produto Base (u * a) - Descontaminado (sem +0.1)
-        produto_base = uso_min * alpha
+        # Passo 1: O argumento da Função Gama agora depende apenas do histórico de uso
+        # Se uso_min <= 1, log natural <= 0 (Divergência matemática detectada)
+        log_base = math.log(uso_min)
         
-        # Passo 2: O argumento da Função Gama (sem freios artificiais)
-        # Se produto_base <= 1, log natural <= 0 (Divergência matemática detectada)
-        log_base = math.log(produto_base)
-        
-        # Passo 3: Fatorial de Validação
+        # Passo 2: Fatorial de Validação
         fatorial_resistencia = gamma(log_base)
         
-        # Passo 4: Suavização Logarítmica e Denominador Elástico
-        # Se fatorial_resistencia <= 1, o denominador zera ou fica negativo (Divergência)
-        denominador = math.log(fatorial_resistencia)
+        # Passo 3: Suavização Dupla Logarítmica e Denominador Elástico
+        # O duplo ln freia a explosão fatorial criando uma constante de resiliência
+        # Se o log interno for <= 1, o log externo diverge ou fica negativo
+        denominador = math.log(math.log(fatorial_resistencia))
         
-        # Cálculo Final
+        # Cálculo Final: Numerador como Função Exponencial da Fadiga
         exponent = lambd * alpha
         if exponent > 700:
             p_score = float('inf')
@@ -175,7 +168,7 @@ if pagina == "🏠 Visão Geral":
             <h2 style="color: white; margin-top: 0;">Análise Singular e Proporções Sucessivas</h2>
             <p style="font-size: 1.1em; color: #cbd5e1; line-height: 1.6;">
                 Nesta evolução estocástica, modelamos a resiliência física do ativo aplicando camadas sucessivas de validação.<br><br>
-                O sistema é regido estritamente pelas variáveis de entrada. O uso valida o sistema de forma fatorial, mas este fator é imediatamente <b>suavizado logaritmicamente</b> para não mascarar o risco do numerador diante de estresses agudos ($ \alpha $).
+                O sistema é regido estritamente pelas variáveis de entrada. O uso valida o sistema de forma fatorial baseando-se apenas no seu histórico. Esse fator é imediatamente <b>suavizado duplamente de forma logarítmica</b> para atuar como uma constante resistente, enquanto a fadiga impulsiona o numerador de forma exponencial.
             </p>
         </div>
         """, unsafe_allow_html=True)
@@ -183,13 +176,13 @@ if pagina == "🏠 Visão Geral":
     with col_txt:
         st.markdown("### Como o Algoritmo Funciona?")
         st.write("A equação pura utiliza camadas aninhadas para frear explosões matemáticas e focar na fadiga real do material, aceitando divergências quando operamos na 'incerteza absoluta':")
-        # st.latex atualizado para a forma pura, sem correções numéricas fixas
-        st.latex(r"P = \frac{e^{(\lambda \cdot \alpha)}}{\ln(\Gamma(\ln(u \cdot \alpha)))}")
+        # st.latex atualizado com as novas premissas fenomenológicas
+        st.latex(r"P = \frac{e^{(\lambda \cdot \alpha)}}{\ln(\ln(\Gamma(\ln(u))))}")
         st.markdown("""
         * **$P$ (Potencial de Risco):** A taxa de ruptura estrutural.
-        * **$\lambda$ e $\alpha$:** Taxa de falhas combinada com a ociosidade/estresse.
-        * **$\Gamma(\dots)$:** O comportamento fatorial prova que a máquina suporta carga de trabalho.
-        * **$\ln$ externo:** Suaviza a Função Gama, operando como um amortecedor matemático.
+        * **$e^{(\lambda \cdot \alpha)}$:** O Numerador age como impulsionador da Fadiga Acumulada, garantindo o crescimento contínuo do risco em função da falta de manutenção.
+        * **$\Gamma(\dots)$ e Desacoplamento:** O comportamento fatorial prova que a máquina suporta carga de trabalho considerando **apenas o seu uso**, sem distorções do tempo de manutenção.
+        * **A Dupla Camada ( $\ln$ externo ):** Envolve a Função Gama em dois logaritmos sucessivos, operando como o derradeiro freio de segunda ordem na constante de resiliência.
         """)
 
 elif pagina == "🚀 Sistemas Complexos (Aeronaves/Veículos)":
@@ -274,7 +267,7 @@ elif pagina == "⚙️ Dashboard de Ativos":
         c1, c2, c3 = st.columns(3)
         c1.metric("Taxa Normalizada (λ)", f"{lambd_atual:.4f}")
         c2.metric("Estresse Sistêmico (α)", f"{alpha_atual:.3f}")
-        c3.metric("Denominador (Log-Gama)", denom_str, help="O fator elástico regido puramente pela proporção.")
+        c3.metric("Denominador (Duplo Log-Gama)", denom_str, help="O fator elástico da resiliência baseado estritamente no uso.")
         st.markdown("</div>", unsafe_allow_html=True)
         
     st.markdown("<br>", unsafe_allow_html=True)
@@ -387,6 +380,5 @@ elif pagina == "⚖️ Comparador de Marcas":
         st.success(f"🏆 A marca **{nome_b}** lida melhor com o estresse (α).")
     else:
         st.info("⚖️ Empate técnico ou ambas em divergência (risco incalculável).")
-
 
 
