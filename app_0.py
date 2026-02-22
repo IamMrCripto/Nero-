@@ -347,3 +347,4 @@ elif pagina == " ⚖️  Comparador de Marcas":
     else:
         st.info(" ⚖️  Empate técnico.")
 
+
