@@ -68,33 +68,30 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --- 3. MOTOR MATEMÁTICO NERO V2 (USO PONDERADO POR ALPHA) ---
+# --- 3. MOTOR MATEMÁTICO NERO V6 (NOTAÇÃO DE PUREZA SINGULAR) ---
 def calcular_nero(falhas_ano: int, uso_min: float, t_conserto_min: float):
-    """Calcula o score NERO com a ponderação de estresse sobre o uso."""
+    """Calcula o score NERO com a ponderação de estresse sobre o uso e função Gamma."""
     uso_min = max(uso_min, 0.1)
 
     # 1. Lambda (Taxa de Falhas Anual Normalizada)
     lambd = falhas_ano / 365.0
 
     # 2. Alpha (Coeficiente de Estresse Sistêmico)
-    if t_conserto_min <= 0.1:
-        alpha = math.log(abs(uso_min))
-    elif t_conserto_min == uso_min:
-        alpha = abs(t_conserto_min + 1 - uso_min) / (t_conserto_min + 1)
-    else:
-        alpha = abs(t_conserto_min - uso_min) / (t_conserto_min + 1)
+    # Calculada como a razão normalizada para tender a 1 no limite crítico
+    alpha = t_conserto_min / (t_conserto_min + uso_min)
 
-    # --- A GRANDE ATUALIZAÇÃO: USO EFETIVO ---
-    # O uso real da máquina é penalizado se o estresse sistêmico for alto.
+    # Mantemos a variável de uso_efetivo para os dashboards
     uso_efetivo = uso_min / (alpha + 1)
 
-    # 3. Potencial de Risco (P)
+    # 3. Potencial de Risco (P) - Motor Atualizado
     try:
         exponent = lambd * alpha
         if exponent > 700:
             p_score = float('inf')
         else:
-            p_score = math.exp(exponent) / uso_efetivo
+            # Numerador: e^(lambda * alpha)
+            # Denominador: U * Gamma(alpha + 1)^-1  => o mesmo que multiplicar por Gamma(alpha + 1)
+            p_score = (math.exp(exponent) * math.gamma(alpha + 1)) / uso_min
     except Exception:
         p_score = float('inf')
 
@@ -103,11 +100,11 @@ def calcular_nero(falhas_ano: int, uso_min: float, t_conserto_min: float):
 def get_status_visual(p_score):
     if p_score == float('inf'):
         return "CRÍTICO EXTREMO", "#7f1d1d", "⛔"
-    elif p_score > 0.01:
-        return "CRÍTICO", "#dc2626", "🔴"
-    elif p_score > 0.005:
+    elif p_score >= 0.1:
+        return "CRÍTICO (Início do Colapso)", "#dc2626", "🔴"
+    elif p_score >= 0.01:
         return "ALERTA", "#FF9500", "🟠"
-    elif p_score > 0.001:
+    elif p_score >= 0.001:
         return "OPERACIONAL", "#9C27B0", "🟣"
     else:
         return "EXCELENTE", "#00C853", "🟢"
@@ -162,13 +159,13 @@ if pagina == "🏠 Visão Geral":
 
     with col_txt:
         st.markdown("### Como o Algoritmo Funciona?")
-        st.write("A nossa equação exclusiva pondera o benefício do uso pelo coeficiente de estresse ($ \\alpha $):")
-        st.latex(r"P = \frac{e^{(\lambda \cdot \alpha)}}{\left(\frac{U}{\alpha + 1}\right)}")
+        st.write("A nossa equação exclusiva pondera o benefício do uso pela Notação de Pureza Singular:")
+        st.latex(r"P = \frac{e^{(\lambda \cdot \alpha)}}{U \cdot \Gamma(\alpha + 1)^{-1}}")
         st.markdown("""
         * **$P$ (Potencial de Risco):** O placar de segurança. Próximo a zero é ideal.
         * **$\lambda$ (Lambda):** Taxa normalizada de falhas anuais.
-        * **$\alpha$ (Alpha):** Coeficiente de Estresse (Ociosidade vs. Uso).
-        * **$U / (\alpha + 1)$:** O uso efetivo. Se a máquina está muito estressada, as horas de trabalho não a salvam mais; elas amplificam o risco.
+        * **$\alpha$ (Alpha):** Coeficiente de Estresse Sistêmico (Razão normalizada de fadiga).
+        * **$\Gamma(\alpha + 1)$:** O ajuste de fadiga gama avaliando a estabilidade da máquina.
         """)
 
 elif pagina == "🚀 Sistemas Complexos (Aeronaves/Veículos)":
@@ -244,7 +241,6 @@ elif pagina == "⚙️ Dashboard de Ativos":
         c1, c2, c3 = st.columns(3)
         c1.metric("Taxa Normalizada (λ)", f"{lambd_atual:.4f}")
         c2.metric("Estresse Sistêmico (α)", f"{alpha_atual:.3f}")
-        # Exibindo o novo conceito criado
         c3.metric("Uso Efetivo (Ponderado)", f"{uso_efetivo_atual:.0f} min/dia", help="O uso real mitigando o risco, descontado o estresse α.")
         st.markdown("</div>", unsafe_allow_html=True)
 
@@ -256,12 +252,14 @@ elif pagina == "⚙️ Dashboard de Ativos":
         st.write("Visualização da degradação estocástica: o que acontece se o equipamento continuar operando sem manutenção nos próximos dias?")
         dias_projecao = max(dias_in + 90, 100)
         eixo_x = np.linspace(0, dias_projecao, 200)
-        eixo_y = [min(calcular_nero(falhas_in, uso_min_atual, d * 1440)[0], 0.03) for d in eixo_x]
+        # Ajustado para visualizar a nova escala mais precisa do P
+        eixo_y = [min(calcular_nero(falhas_in, uso_min_atual, d * 1440)[0], 0.15) for d in eixo_x]
         
         fig = go.Figure()
-        fig.add_hrect(y0=0, y1=0.005, fillcolor="#00C853", opacity=0.1, line_width=0, annotation_text="Ideal")
-        fig.add_hrect(y0=0.005, y1=0.01, fillcolor="#FF9500", opacity=0.1, line_width=0, annotation_text="Alerta")
-        fig.add_hrect(y0=0.01, y1=0.03, fillcolor="#dc2626", opacity=0.1, line_width=0, annotation_text="Crítico")
+        fig.add_hrect(y0=0, y1=0.001, fillcolor="#00C853", opacity=0.1, line_width=0, annotation_text="Excelente")
+        fig.add_hrect(y0=0.001, y1=0.01, fillcolor="#9C27B0", opacity=0.1, line_width=0, annotation_text="Operacional")
+        fig.add_hrect(y0=0.01, y1=0.1, fillcolor="#FF9500", opacity=0.1, line_width=0, annotation_text="Alerta")
+        fig.add_hrect(y0=0.1, y1=0.15, fillcolor="#dc2626", opacity=0.1, line_width=0, annotation_text="Crítico")
 
         fig.add_trace(go.Scatter(
             x=eixo_x, y=eixo_y, mode='lines', name='Trajetória de Risco',
@@ -280,7 +278,7 @@ elif pagina == "⚙️ Dashboard de Ativos":
             hovermode="x unified", height=450, margin=dict(l=0, r=0, t=30, b=0),
             plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
             xaxis=dict(title="Dias desde a última manutenção", showgrid=True, gridcolor='#f1f5f9'),
-            yaxis=dict(title="Índice de Risco (P)", showgrid=True, gridcolor='#f1f5f9', range=[0, 0.03])
+            yaxis=dict(title="Índice de Risco (P)", showgrid=True, gridcolor='#f1f5f9', range=[0, 0.15])
         )
         st.plotly_chart(fig, use_container_width=True)
 
