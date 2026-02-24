@@ -11,7 +11,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- 2. ESTILIZAÇÃO CSS (DESIGN VIBRANTE E SIDEBAR LARANJA) ---
+# --- 2. ESTILIZAÇÃO CSS (MAIS CORES E VIBRÂNCIA) ---
 st.markdown("""
 <style>
     /* Tipografia e Fundo Geral */
@@ -20,100 +20,108 @@ st.markdown("""
         font-family: 'Inter', sans-serif;
     }
     
-    /* Customização da Sidebar para Laranja */
+    /* Customização da Sidebar com Novo Gradiente Neon */
     [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #FF6B00 0%, #FF9500 100%) !important;
+        background: linear-gradient(135deg, #FF3D00 0%, #FF9100 50%, #FFC400 100%) !important;
     }
     [data-testid="stSidebar"] * {
-        color: white !important;
+        color: #ffffff !important;
+        text-shadow: 0px 1px 2px rgba(0,0,0,0.2);
     }
 
-    /* Headers com Gradiente Multicolorido */
+    /* Headers com Gradiente Multicolorido Mais Intenso */
     .gradient-text {
-        background: linear-gradient(90deg, #FF6B00 0%, #9C27B0 50%, #FF1493 100%);
+        background: linear-gradient(90deg, #00C853 0%, #00B0FF 33%, #9C27B0 66%, #FF3D00 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         font-weight: 800;
     }
 
-    /* Cards Modernos e Coloridos */
+    /* Cards Modernos e Super Coloridos */
     .modern-card {
-        background: #ffffff;
+        background: linear-gradient(145deg, #ffffff, #f8fafc);
         padding: 24px;
         border-radius: 16px;
-        border: 1px solid #E2E8F0;
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
         height: 100%;
     }
     .modern-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        transform: translateY(-8px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.12);
+        border-color: #00B0FF;
     }
     
     /* Containers de Status (Sucesso/Aviso/Crítico) */
     .status-badge {
         display: inline-block;
-        padding: 6px 14px;
+        padding: 8px 16px;
         border-radius: 9999px;
-        font-weight: 600;
-        font-size: 0.85rem;
-        letter-spacing: 0.05em;
+        font-weight: 800;
+        font-size: 0.9rem;
+        letter-spacing: 0.08em;
         text-transform: uppercase;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     }
     
-    /* Ocultar elementos padrão do Streamlit para visual mais limpo */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
 </style>
 """, unsafe_allow_html=True)
 
-# --- 3. MOTOR MATEMÁTICO NERO V6 (NOTAÇÃO DE PUREZA SINGULAR) ---
+# --- 3. MOTOR MATEMÁTICO NERO (NOVO CÁLCULO DE SEGURANÇA) ---
 def calcular_nero(falhas_ano: int, uso_min: float, t_conserto_min: float):
-    """Calcula o score NERO com a ponderação de estresse sobre o uso e função Gamma."""
+    """
+    Calcula o Índice de Segurança NERO.
+    Agora o denominador é U * Tc. Quanto maior o Tc, menor o P (menos seguro).
+    """
     uso_min = max(uso_min, 0.1)
+    # Evita divisão por zero se t_conserto for 0. Define mínimo de 1 minuto.
+    t_conserto_min = max(t_conserto_min, 1.0) 
 
     # 1. Lambda (Taxa de Falhas Anual Normalizada)
     lambd = falhas_ano / 365.0
 
     # 2. Alpha (Coeficiente de Estresse Sistêmico)
-    # Calculada como a razão normalizada para tender a 1 no limite crítico
     alpha = t_conserto_min / (t_conserto_min + uso_min)
 
-    # Mantemos a variável de uso_efetivo para os dashboards
+    # Uso Efetivo para dashboards
     uso_efetivo = uso_min / (alpha + 1)
 
-    # 3. Potencial de Risco (P) - Motor Atualizado
+    # 3. Índice de Segurança (P) - Denominador alterado para U * Tc
     try:
         exponent = lambd * alpha
         if exponent > 700:
-            p_score = float('inf')
+            p_score = 0.0 # Cai para 0 segurança se der overflow
         else:
-            # Numerador: e^(lambda * alpha)
-            # Denominador: U * Gamma(alpha + 1)^-1  => o mesmo que multiplicar por Gamma(alpha + 1)
-            p_score = (math.exp(exponent) * math.gamma(alpha + 1)) / uso_min
+            # Numerador: e^(lambda * alpha) * Gamma(alpha + 1)
+            # Denominador: U * Tc
+            p_score = (math.exp(exponent) * math.gamma(alpha + 1)) / (uso_min * t_conserto_min)
     except Exception:
-        p_score = float('inf')
+        p_score = 0.0
 
     return p_score, lambd, alpha, uso_efetivo
 
+# --- NOVOS PARÂMETROS DE RISCO (LÓGICA INVERTIDA) ---
 def get_status_visual(p_score):
-    if p_score == float('inf'):
-        return "CRÍTICO EXTREMO", "#7f1d1d", "⛔"
-    elif p_score >= 0.1:
-        return "CRÍTICO (Início do Colapso)", "#dc2626", "🔴"
-    elif p_score >= 0.01:
-        return "ALERTA", "#FF9500", "🟠"
-    elif p_score >= 0.001:
-        return "OPERACIONAL", "#9C27B0", "🟣"
+    # Valores de referência baseados no novo denominador (geralmente em notação científica)
+    if p_score < 1e-8:
+        return "CRÍTICO EXTREMO", "#d50000", "⛔"
+    elif p_score < 5e-7:
+        return "CRÍTICO (Colapso)", "#ff3d00", "🔴"
+    elif p_score < 5e-6:
+        return "ALERTA", "#ffc400", "🟠"
+    elif p_score < 5e-5:
+        return "OPERACIONAL", "#00b0ff", "🔵"
     else:
-        return "EXCELENTE", "#00C853", "🟢"
+        return "EXCELENTE", "#00c853", "🟢"
 
 # --- 4. SIDEBAR: NAVEGAÇÃO E DADOS ---
 with st.sidebar:
-    st.markdown("<h1 style='text-align: center; font-size: 2.5em;'>🛡️</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 style='text-align: center; font-size: 3em;'>🚀</h1>", unsafe_allow_html=True)
     st.markdown("<h2 style='text-align: center; margin-bottom: 0;'>NERO Pro</h2>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center; font-size: 0.9em; opacity: 0.8;'>Euler Risk Observer</p>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; font-size: 1em; font-weight: bold;'>Safety Index Observer</p>", unsafe_allow_html=True)
     st.divider()
     
     pagina = st.radio(
@@ -130,55 +138,54 @@ with st.sidebar:
         with col1:
             falhas_in = st.number_input("Falhas/Ano", min_value=0, value=3)
         with col2:
-            dias_in = st.number_input("Dias s/ Conserto", min_value=0, value=180)
-        uso_horas_in = st.slider("Uso Diário Médio (h)", 0.5, 24.0, 0.5, 0.5)
+            dias_in = st.number_input("Dias s/ Conserto", min_value=0, value=60)
+        uso_horas_in = st.slider("Uso Diário Médio (h)", 0.5, 24.0, 8.0, 0.5)
 
 # --- 5. ROTEAMENTO DE PÁGINAS ---
 if pagina == "🏠 Visão Geral":
     st.markdown("""
-    <div style="text-align: center; padding: 60px 20px;">
-        <h1 class="gradient-text" style="font-size: 4em; margin-bottom: 10px;">A Matemática da Confiabilidade</h1>
+    <div style="text-align: center; padding: 40px 20px;">
+        <h1 class="gradient-text" style="font-size: 4em; margin-bottom: 10px;">O Novo Paradigma de Segurança</h1>
         <h3 style="color: #475569; font-weight: 400; font-size: 1.5em; max-width: 800px; margin: 0 auto;">
-            O NERO Pro modela o risco de falhas através da lente dos <b>Sistemas Dinâmicos</b>. A integridade do seu maquinário não é baseada em histórico, mas em estresse em tempo real.
+            Agora o <b>Score NERO</b> mede a saúde bruta. Quanto maior o valor, mais blindada está a sua máquina contra falhas estocásticas.
         </h3>
     </div>
     """, unsafe_allow_html=True)
+    
+    st.write("")
 
     col_img, col_txt = st.columns([1, 1.2], gap="large")
     with col_img:
         st.markdown("""
-        <div class="modern-card" style="background: linear-gradient(145deg, #1e1e1e, #2d2d2d); border-left: 4px solid #FF6B00; color: white;">
-            <h2 style="color: white; margin-top: 0;">O Paradigma NERO</h2>
-            <p style="font-size: 1.1em; color: #cbd5e1; line-height: 1.6;">
-                Na engenharia clássica, o uso constante é sempre visto como desgaste. No modelo NERO original, o uso é validação. Mas a vida real exige uma ponderação perfeita:<br><br>
-                <b style="color: #FF6B00; font-size: 1.2em;">"O estresse devora a validação."</b><br><br>
-                Se uma máquina está com manutenção atrasada, o tempo de uso deixa de ser um certificado de saúde e passa a acelerar a degradação sistêmica.
+        <div class="modern-card" style="background: linear-gradient(135deg, #0f2027, #203a43, #2c5364); border-top: 6px solid #00B0FF; color: white;">
+            <h2 style="color: #00B0FF; margin-top: 0;">Lógica Invertida, Precisão Aumentada</h2>
+            <p style="font-size: 1.1em; color: #e2e8f0; line-height: 1.6;">
+                Nossa nova matriz matemática penaliza duplamente a negligência. Ao multiplicar o Tempo sem Conserto ($T_c$) pelo Uso no denominador, criamos um <b>Índice de Sobrevivência</b>.<br><br>
+                Valores altos indicam um equipamento em estado <b>Excelente</b>. Valores despencando para a casa dos decimais indicam um <b>Colapso Crítico</b> iminente.
             </p>
         </div>
         """, unsafe_allow_html=True)
 
     with col_txt:
-        st.markdown("### Como o Algoritmo Funciona?")
-        st.write("A nossa equação exclusiva pondera o benefício do uso pela Notação de Pureza Singular:")
-        st.latex(r"P = \frac{e^{(\lambda \cdot \alpha)}}{U \cdot \Gamma(\alpha + 1)^{-1}}")
+        st.markdown("### A Nova Equação Singular")
+        st.write("A equação foi atualizada para consolidar o tempo de ociosidade com falhas diretamente no fator de degradação do denominador:")
+        st.latex(r"P_{segurança} = \frac{e^{(\lambda \cdot \alpha)}}{U \cdot T_c \cdot \Gamma(\alpha + 1)^{-1}}")
         st.markdown("""
-        * **$P$ (Potencial de Risco):** O placar de segurança. Próximo a zero é ideal.
-        * **$\lambda$ (Lambda):** Taxa normalizada de falhas anuais.
-        * **$\alpha$ (Alpha):** Coeficiente de Estresse Sistêmico (Razão normalizada de fadiga).
-        * **$\Gamma(\alpha + 1)$:** O ajuste de fadiga gama avaliando a estabilidade da máquina.
+        * **$P_{segurança}$:** O placar de integridade. (Altos = Seguro | Baixos = Crítico).
+        * **$\lambda$ (Lambda):** Taxa normalizada de falhas.
+        * **$\alpha$ (Alpha):** Coeficiente de Estresse.
+        * **$U \cdot T_c$:** O produto do Uso pelo Tempo sem conserto. Força a queda brutal do score se a manutenção for ignorada.
         """)
 
 elif pagina == "🚀 Sistemas Complexos (Aeronaves/Veículos)":
     st.markdown("<h2 class='gradient-text'>Confiabilidade Global de Sistemas Eletromecânicos</h2>", unsafe_allow_html=True)
-    st.write("""
-    Para sistemas compostos, a falha global ($P_{total}$) é a **média ponderada** dos riscos individuais ($P_i$), utilizando o estresse sistêmico ($\\alpha_i$) como peso. O subsistema mais estressado domina a saúde geral da máquina.
-    """)
+    st.write("Avalie a resiliência global ponderando a segurança de cada subsistema.")
+    
+    st.write("")
     
     st.latex(r"P_{total} = \frac{\sum_{i=1}^{n} (P_i \cdot \alpha_i)}{\sum_{i=1}^{n} \alpha_i}")
     
-    st.markdown("### Simulador de Veículos / Frotas")
-    
-    sistemas = ["Motor Principal (Ex: Bloco/Turbina)", "Sistema de Lubrificação/Hidráulico", "Sistemas Elétricos / Sensores"]
+    sistemas = ["Motor Principal", "Sistema Hidráulico", "Aviônicos / Sensores"]
     resultados = []
     
     col1, col2, col3 = st.columns(3)
@@ -186,18 +193,19 @@ elif pagina == "🚀 Sistemas Complexos (Aeronaves/Veículos)":
     
     for i, sys_name in enumerate(sistemas):
         with cols[i]:
-            st.markdown(f"<div class='modern-card' style='border-top: 4px solid #FF1493;'>", unsafe_allow_html=True)
-            st.markdown(f"#### {sys_name}")
-            f_ano = st.number_input(f"Falhas/Ano", 0, 50, 1 + i*2, key=f"f_{i}")
-            d_conserto = st.number_input(f"Dias s/ Manut.", 0, 365, 45 + i*45, key=f"d_{i}")
-            u_diario = st.slider(f"Uso/Dia (h)", 0.5, 24.0, 8.0, key=f"u_{i}")
+            cores_topo = ["#00B0FF", "#FF3D00", "#9C27B0"]
+            st.markdown(f"<div class='modern-card' style='border-top: 6px solid {cores_topo[i]};'>", unsafe_allow_html=True)
+            st.markdown(f"<h4 style='color:{cores_topo[i]};'>{sys_name}</h4>", unsafe_allow_html=True)
+            f_ano = st.number_input(f"Falhas/Ano", 0, 50, 1 + i, key=f"f_{i}")
+            d_conserto = st.number_input(f"Dias s/ Manut.", 0, 365, 10 + i*30, key=f"d_{i}")
+            u_diario = st.slider(f"Uso/Dia (h)", 0.5, 24.0, 6.0, key=f"u_{i}")
             
-            p, l, a, u_efetivo = calcular_nero(f_ano, u_diario * 60, d_conserto * 1440)
-            resultados.append({'p': p, 'alpha': a, 'nome': sys_name})
+            p, l, a, u_efetivo = calcular_nero(f_ano, u_diario * 60, max(d_conserto, 1) * 1440)
+            resultados.append({'p': p, 'alpha': a})
             
             status, cor, icon = get_status_visual(p)
-            st.markdown(f"<p style='color:{cor}; font-weight:bold;'>Score P: {p:.5f}</p>", unsafe_allow_html=True)
-            st.markdown(f"<p style='color:#64748b;'>Peso (α): {a:.3f}</p>", unsafe_allow_html=True)
+            st.markdown(f"<p style='color:{cor}; font-weight:800; font-size: 1.2em;'>Índice: {p:.2e}</p>", unsafe_allow_html=True)
+            st.markdown(f"<span class='status-badge' style='background:{cor}; color:white; font-size: 0.7rem;'>{icon} {status}</span>", unsafe_allow_html=True)
             st.markdown("</div>", unsafe_allow_html=True)
             
     soma_p_alpha = sum(r['p'] * r['alpha'] for r in resultados)
@@ -207,30 +215,28 @@ elif pagina == "🚀 Sistemas Complexos (Aeronaves/Veículos)":
     st.divider()
     stat_g, cor_g, icon_g = get_status_visual(p_global)
     st.markdown(f"""
-    <div style="text-align: center; padding: 30px; background: {cor_g}15; border-radius: 16px; border: 2px solid {cor_g};">
-        <h3 style="margin:0; color: #1e293b;">Risco Global do Sistema Ponderado por Estresse (α)</h3>
-        <h1 style="font-size: 4em; color: {cor_g}; margin: 10px 0;">{p_global:.5f}</h1>
-        <span class="status-badge" style="background: {cor_g}; color: white;">{icon_g} STATUS GLOBAL: {stat_g}</span>
+    <div style="text-align: center; padding: 40px; background: linear-gradient(145deg, #ffffff, {cor_g}15); border-radius: 20px; border: 3px solid {cor_g}; box-shadow: 0 10px 30px {cor_g}30;">
+        <h3 style="margin:0; color: #1e293b; font-weight: 800;">SEGURANÇA GLOBAL DO SISTEMA</h3>
+        <h1 style="font-size: 5em; color: {cor_g}; margin: 10px 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.1);">{p_global:.2e}</h1>
+        <span class="status-badge" style="background: {cor_g}; color: white; font-size: 1.2em;">{icon_g} STATUS: {stat_g}</span>
     </div>
     """, unsafe_allow_html=True)
 
 elif pagina == "⚙️ Dashboard de Ativos":
-    # --- LÓGICA DE CÁLCULO ---
     uso_min_atual = uso_horas_in * 60
-    t_conserto_min_atual = dias_in * 1440
+    t_conserto_min_atual = max(dias_in, 1) * 1440
     p_atual, lambd_atual, alpha_atual, uso_efetivo_atual = calcular_nero(falhas_in, uso_min_atual, t_conserto_min_atual)
     status_txt, status_cor, status_icon = get_status_visual(p_atual)
 
-    # --- HEADER DO DASHBOARD ---
-    st.markdown(f"## Análise em Tempo Real: **{nome_ativo}**")
+    st.markdown(f"<h2 style='color: #1e293b;'>Telemetria de Segurança: <span style='color: #00B0FF;'>{nome_ativo}</span></h2>", unsafe_allow_html=True)
     col_kpi, col_info = st.columns([1, 2.5])
     
     with col_kpi:
         st.markdown(f"""
-        <div class="modern-card" style="border-top: 6px solid {status_cor}; text-align: center;">
-            <p style="color: #64748b; font-size: 0.9em; font-weight: 600; text-transform: uppercase; margin: 0;">Índice NERO (P)</p>
-            <h2 style="font-size: 2.5em; color: #1e293b; margin: 10px 0;">{p_atual:.5f}</h2>
-            <div style="background: {status_cor}20; color: {status_cor};" class="status-badge">
+        <div class="modern-card" style="background: {status_cor}; text-align: center; color: white;">
+            <p style="color: rgba(255,255,255,0.8); font-size: 1em; font-weight: 800; text-transform: uppercase; margin: 0;">Índice de Segurança</p>
+            <h2 style="font-size: 3em; color: white; margin: 10px 0; text-shadow: 0px 4px 10px rgba(0,0,0,0.3);">{p_atual:.2e}</h2>
+            <div style="background: rgba(255,255,255,0.2); color: white; border: 1px solid white;" class="status-badge">
                 {status_icon} {status_txt}
             </div>
         </div>
@@ -239,104 +245,109 @@ elif pagina == "⚙️ Dashboard de Ativos":
     with col_info:
         st.markdown("<div class='modern-card'>", unsafe_allow_html=True)
         c1, c2, c3 = st.columns(3)
-        c1.metric("Taxa Normalizada (λ)", f"{lambd_atual:.4f}")
-        c2.metric("Estresse Sistêmico (α)", f"{alpha_atual:.3f}")
-        c3.metric("Uso Efetivo (Ponderado)", f"{uso_efetivo_atual:.0f} min/dia", help="O uso real mitigando o risco, descontado o estresse α.")
+        c1.metric("Taxa Falhas (λ)", f"{lambd_atual:.4f}")
+        c2.metric("Fator Fadiga (α)", f"{alpha_atual:.3f}")
+        c3.metric("Uso Eficaz", f"{uso_efetivo_atual:.0f} m/dia")
         st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    tab_grafico, tab_simulador = st.tabs(["📉 Curva de Degradação", "🧪 Simulador What-If"])
+    tab_grafico, tab_simulador = st.tabs(["📉 Curva de Queda de Segurança", "🧪 Simulador de Regime"])
 
     with tab_grafico:
-        st.write("Visualização da degradação estocástica: o que acontece se o equipamento continuar operando sem manutenção nos próximos dias?")
+        st.write("A linha abaixo mostra como a segurança **despenca** conforme os dias sem manutenção avançam.")
         dias_projecao = max(dias_in + 90, 100)
-        eixo_x = np.linspace(0, dias_projecao, 200)
-        # Ajustado para visualizar a nova escala mais precisa do P
-        eixo_y = [min(calcular_nero(falhas_in, uso_min_atual, d * 1440)[0], 0.15) for d in eixo_x]
+        eixo_x = np.linspace(1, dias_projecao, 200) # Começa em 1 para evitar divisão por 0
+        
+        # Coletamos os valores invertidos
+        eixo_y = [calcular_nero(falhas_in, uso_min_atual, d * 1440)[0] for d in eixo_x]
         
         fig = go.Figure()
-        fig.add_hrect(y0=0, y1=0.001, fillcolor="#00C853", opacity=0.1, line_width=0, annotation_text="Excelente")
-        fig.add_hrect(y0=0.001, y1=0.01, fillcolor="#9C27B0", opacity=0.1, line_width=0, annotation_text="Operacional")
-        fig.add_hrect(y0=0.01, y1=0.1, fillcolor="#FF9500", opacity=0.1, line_width=0, annotation_text="Alerta")
-        fig.add_hrect(y0=0.1, y1=0.15, fillcolor="#dc2626", opacity=0.1, line_width=0, annotation_text="Crítico")
 
         fig.add_trace(go.Scatter(
-            x=eixo_x, y=eixo_y, mode='lines', name='Trajetória de Risco',
-            line=dict(color='#FF6B00', width=4, shape='spline'),
-            fill='tozeroy', fillcolor='rgba(255, 107, 0, 0.1)',
-            hovertemplate='Dias s/ Manutenção: %{x:.0f}<br>Risco NERO: %{y:.5f}<extra></extra>'
+            x=eixo_x, y=eixo_y, mode='lines', name='Segurança NERO',
+            line=dict(color='#00B0FF', width=5, shape='spline'),
+            fill='tozeroy', fillcolor='rgba(0, 176, 255, 0.15)',
+            hovertemplate='Dias s/ Manutenção: %{x:.0f}<br>Segurança: %{y:.2e}<extra></extra>'
         ))
 
         fig.add_trace(go.Scatter(
-            x=[dias_in], y=[p_atual], mode='markers+text', name='Status Atual',
-            marker=dict(color=status_cor, size=16, line=dict(color='white', width=3)),
-            text=['VOCÊ ESTÁ AQUI'], textposition='top left', textfont=dict(color=status_cor, size=12)
+            x=[max(dias_in, 1)], y=[p_atual], mode='markers+text', name='Estado Atual',
+            marker=dict(color=status_cor, size=18, line=dict(color='white', width=4)),
+            text=['📍 ESTADO ATUAL'], textposition='top right', textfont=dict(color=status_cor, size=14, weight='bold')
         ))
 
         fig.update_layout(
-            hovermode="x unified", height=450, margin=dict(l=0, r=0, t=30, b=0),
+            hovermode="x unified", height=500, margin=dict(l=0, r=0, t=30, b=0),
             plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
-            xaxis=dict(title="Dias desde a última manutenção", showgrid=True, gridcolor='#f1f5f9'),
-            yaxis=dict(title="Índice de Risco (P)", showgrid=True, gridcolor='#f1f5f9', range=[0, 0.15])
+            xaxis=dict(title="Dias Acumulados sem Manutenção", showgrid=True, gridcolor='#e2e8f0'),
+            yaxis=dict(title="Índice de Segurança (Escala Logarítmica)", type="log", showgrid=True, gridcolor='#e2e8f0')
         )
         st.plotly_chart(fig, use_container_width=True)
 
     with tab_simulador:
-        st.markdown("### Teste de Regime Operacional")
+        st.markdown("### Teste de Novo Regime Operacional")
         col_s1, col_s2, col_s3 = st.columns([1, 0.2, 1])
         with col_s1:
-            st.info(f"**Cenário Atual:**\n\nUso: {uso_horas_in}h | Manut.: {dias_in} dias atrás\nRisco: **{p_atual:.5f}**")
+            st.info(f"**Cenário Atual:**\n\nUso: {uso_horas_in}h | Manut.: {dias_in} dias atrás\nSegurança: **{p_atual:.2e}**")
         with col_s2:
-            st.markdown("<h2 style='text-align: center; color: #cbd5e1; margin-top: 10px;'>→</h2>", unsafe_allow_html=True)
+            st.markdown("<h1 style='text-align: center; color: #00B0FF; margin-top: 10px;'>⚡</h1>", unsafe_allow_html=True)
         with col_s3:
             novo_uso = st.slider("Novo Uso (h/dia)", 0.5, 24.0, float(max(1.0, uso_horas_in - 2)), 0.5, key="sim_uso")
-            novos_dias = st.number_input("Novos Dias s/ Conserto", 0, 365, int(max(0, dias_in - 10)), key="sim_dias")
+            novos_dias = st.number_input("Dias Reprogramados", 0, 365, int(max(1, dias_in - 10)), key="sim_dias")
             
-        p_novo, _, _, _ = calcular_nero(falhas_in, novo_uso * 60, novos_dias * 1440)
+        p_novo, _, _, _ = calcular_nero(falhas_in, novo_uso * 60, max(novos_dias, 1) * 1440)
         st.divider()
-        if p_novo < p_atual:
-            melhoria = abs(((p_novo - p_atual) / p_atual) * 100)
-            st.markdown(f"""<div class="success-box"><b>📈 CONFIABILIDADE OTIMIZADA:</b> Risco caiu para <b>{p_novo:.5f}</b> (Melhoria de {melhoria:.1f}%).</div>""", unsafe_allow_html=True)
-        elif p_novo > p_atual:
-            piora = abs(((p_novo - p_atual) / p_atual) * 100)
-            st.markdown(f"""<div class="warning-box"><b>📉 CUIDADO:</b> Risco subiu para <b>{p_novo:.5f}</b> (Piora de {piora:.1f}%). Como o estresse penaliza o uso efetivo, o regime escolhido prejudica a máquina.</div>""", unsafe_allow_html=True)
+        if p_novo > p_atual:
+            melhoria = (p_novo / p_atual) if p_atual > 0 else 0
+            st.markdown(f"""<div class="modern-card" style="border-left: 8px solid #00C853;">
+                <h3 style="color:#00C853; margin:0;">📈 SEGURANÇA MULTIPLICADA</h3>
+                <p>O índice subiu para <b>{p_novo:.2e}</b> (Ficou {melhoria:.1f}x mais seguro). Excelente decisão.</p>
+            </div>""", unsafe_allow_html=True)
+        elif p_novo < p_atual:
+            piora = (p_atual / p_novo) if p_novo > 0 else 0
+            st.markdown(f"""<div class="modern-card" style="border-left: 8px solid #FF3D00;">
+                <h3 style="color:#FF3D00; margin:0;">📉 PERIGO AUMENTADO</h3>
+                <p>O índice caiu para <b>{p_novo:.2e}</b> (Ficou {piora:.1f}x menos seguro). Risco de colapso elevado.</p>
+            </div>""", unsafe_allow_html=True)
 
 elif pagina == "⚖️ Comparador de Marcas":
-    st.markdown("## ⚖️ Comparador Estocástico de Marcas")
-    st.write("Insira os dados de duas marcas submetidas ao mesmo cenário. A ponderação avançada do NERO mostrará qual delas resiste melhor à fadiga e perda de lubrificação.")
+    st.markdown("## ⚖️ Duelo de Resiliência")
+    st.write("Com a nova lógica, o **maior Índice de Segurança** vence. Descubra qual equipamento resiste melhor ao multiplicador de fadiga ($U \cdot T_c$).")
     
-    col_marca_a, col_vs, col_marca_b = st.columns([1, 0.1, 1])
+    col_marca_a, col_vs, col_marca_b = st.columns([1, 0.2, 1])
     
     with col_marca_a:
-        st.markdown("<div class='modern-card' style='border-top: 4px solid #FF6B00;'>", unsafe_allow_html=True)
-        st.markdown("### Marca A")
+        st.markdown("<div class='modern-card' style='border-top: 8px solid #00B0FF;'>", unsafe_allow_html=True)
+        st.markdown("<h3 style='color: #00B0FF;'>Marca A</h3>", unsafe_allow_html=True)
         nome_a = st.text_input("Nome", "TechCorp Premium", key="nome_a")
-        falhas_a = st.number_input("Média de Falhas/Ano", 0, 100, 3, key="falhas_a")
-        dias_a = st.number_input("Tempo Típico p/ Falhar (Dias)", 0, 1000, 120, key="dias_a")
-        uso_a = st.number_input("Horas de Uso/Dia", 1.0, 24.0, 10.0, key="uso_a")
+        falhas_a = st.number_input("Falhas/Ano", 0, 100, 2, key="falhas_a")
+        dias_a = st.number_input("Dias Típicos p/ Falhar", 1, 1000, 200, key="dias_a")
+        uso_a = st.number_input("Horas Uso/Dia", 1.0, 24.0, 12.0, key="uso_a")
         p_a, _, _, _ = calcular_nero(falhas_a, uso_a * 60, dias_a * 1440)
-        status_txt_a, color_a, _ = get_status_visual(p_a)
-        st.markdown(f"<br><h4 style='color: #64748b;'>Score NERO</h4><h2 style='color: {color_a};'>{p_a:.5f}</h2></div>", unsafe_allow_html=True)
+        status_txt_a, color_a, icon_a = get_status_visual(p_a)
+        st.markdown(f"<br><h5 style='color: #64748b; margin:0;'>Índice NERO</h5><h1 style='color: {color_a}; margin:0;'>{p_a:.2e}</h1>", unsafe_allow_html=True)
+        st.markdown(f"<span class='status-badge' style='background:{color_a}; color:white; margin-top:10px;'>{icon_a} {status_txt_a}</span></div>", unsafe_allow_html=True)
 
     with col_vs:
-        st.markdown("<h2 style='text-align: center; color: #cbd5e1; margin-top: 150px;'>VS</h2>", unsafe_allow_html=True)
+        st.markdown("<h1 style='text-align: center; font-size: 4em; color: #cbd5e1; margin-top: 100px;'>⚔️</h1>", unsafe_allow_html=True)
 
     with col_marca_b:
-        st.markdown("<div class='modern-card' style='border-top: 4px solid #9C27B0;'>", unsafe_allow_html=True)
-        st.markdown("### Marca B")
+        st.markdown("<div class='modern-card' style='border-top: 8px solid #9C27B0;'>", unsafe_allow_html=True)
+        st.markdown("<h3 style='color: #9C27B0;'>Marca B</h3>", unsafe_allow_html=True)
         nome_b = st.text_input("Nome", "ElectroMax Genérica", key="nome_b")
-        falhas_b = st.number_input("Média de Falhas/Ano", 0, 100, 12, key="falhas_b")
-        dias_b = st.number_input("Tempo Típico p/ Falhar (Dias)", 0, 1000, 45, key="dias_b")
-        uso_b = st.number_input("Horas de Uso/Dia", 1.0, 24.0, 10.0, key="uso_b")
+        falhas_b = st.number_input("Falhas/Ano", 0, 100, 8, key="falhas_b")
+        dias_b = st.number_input("Dias Típicos p/ Falhar", 1, 1000, 60, key="dias_b")
+        uso_b = st.number_input("Horas Uso/Dia", 1.0, 24.0, 12.0, key="uso_b")
         p_b, _, _, _ = calcular_nero(falhas_b, uso_b * 60, dias_b * 1440)
-        status_txt_b, color_b, _ = get_status_visual(p_b)
-        st.markdown(f"<br><h4 style='color: #64748b;'>Score NERO</h4><h2 style='color: {color_b};'>{p_b:.5f}</h2></div>", unsafe_allow_html=True)
+        status_txt_b, color_b, icon_b = get_status_visual(p_b)
+        st.markdown(f"<br><h5 style='color: #64748b; margin:0;'>Índice NERO</h5><h1 style='color: {color_b}; margin:0;'>{p_b:.2e}</h1>", unsafe_allow_html=True)
+        st.markdown(f"<span class='status-badge' style='background:{color_b}; color:white; margin-top:10px;'>{icon_b} {status_txt_b}</span></div>", unsafe_allow_html=True)
 
     st.divider()
-    if p_a < p_b:
-        st.success(f"🏆 A marca **{nome_a}** lida melhor com o estresse (α).")
-    elif p_b < p_a:
-        st.success(f"🏆 A marca **{nome_b}** lida melhor com o estresse (α).")
+    if p_a > p_b:
+        st.success(f"🏆 A marca **{nome_a}** é estruturalmente mais segura. O multiplicador de fadiga afeta muito menos seu desempenho.")
+    elif p_b > p_a:
+        st.success(f"🏆 A marca **{nome_b}** é estruturalmente mais segura. O multiplicador de fadiga afeta muito menos seu desempenho.")
     else:
-        st.info("⚖️ Empate técnico.")
+        st.info("⚖️ Empate técnico absoluto de resiliência.")
