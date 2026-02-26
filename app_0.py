@@ -23,8 +23,9 @@ st.markdown(hide_st_style, unsafe_allow_html=True)
 
 # ==========================================
 # CÓDIGO FONTE DO SISTEMA (HTML + CSS + JS)
+# (Usando 'r' antes da string para evitar que o Python quebre as barras do LaTeX)
 # ==========================================
-html_code = """
+html_code = r"""
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -133,14 +134,14 @@ html_code = """
            ========================================= */
         .image-gallery {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
+            grid-template-columns: repeat(2, 1fr); /* Ajustado para as 2 imagens em anexo */
+            gap: 15px;
             margin-bottom: 25px;
         }
 
         .image-gallery img {
             width: 100%;
-            height: 120px;
+            height: 250px; /* Ajuste de altura para melhor visualização das imagens verticais */
             object-fit: cover;
             border-radius: 8px;
             border: 1px solid var(--border-color);
@@ -334,20 +335,19 @@ html_code = """
             <h2 style="color: #fff; margin-bottom: 20px; font-weight: 800;">Alvos de Propulsão</h2>
             
             <div class="image-gallery">
-                <img src="https://images.unsplash.com/photo-1580273916550-e323be2ae537?auto=format&fit=crop&q=80&w=400" alt="Motor de Carro">
-                <img src="https://images.unsplash.com/photo-1544331487-194129759ce9?auto=format&fit=crop&q=80&w=400" alt="Turbina de Avião">
-                <img src="https://images.unsplash.com/photo-1517976487492-5750f3195933?auto=format&fit=crop&q=80&w=400" alt="Motor de Foguete">
+                <img src="BCO.46320da6-8731-4951-83d9-c2b5fd96709e.jpg" alt="Motor de Combustão em Chamas">
+                <img src="BCO.ad96e715-3f80-4890-8452-c916d844511e.jpg" alt="Propulsor Foguete em Ignição">
             </div>
 
             <h3 style="color: var(--blue-primary); margin-top: 30px;">Algoritmo Estrutural</h3>
             
             <div class="math-container">
-                $$ R = \frac{\left(1 + \frac{1}{t_c}\right)^{t_c} \cdot \ln\left(\ln\left(\Gamma(\alpha + 2)^{t_c}\right)\right) \cdot e^{\alpha \cdot \lambda}}{u} $$
+                $$ R = \frac{\left(1 + \frac{1}{t_c}\right)^{t_c} \cdot \left(\ln\left(\ln\left(\Gamma(\alpha + 2)^{t_c}\right)\right)\right)^2 \cdot e^{\alpha \cdot \lambda}}{u} $$
             </div>
 
             <ul class="theory-list">
                 <li>O sistema processa todas as variáveis de tempo estritamente em <strong>minutos</strong>.</li>
-                <li><strong>Gama (Γ):</strong> Catapulta o estresse acumulado. Processado como logaritmo duplo para evitar <i>overflow</i> matemático.</li>
+                <li><strong>Gama (Γ):</strong> Catapulta o estresse acumulado. Processado como logaritmo duplo ao quadrado para amplificação exponencial controlada.</li>
                 <li><strong>Alpha (α):</strong> Dinâmico. Se <i>tc = 0</i>, α = ln(|u|). Se <i>tc = u</i>, o numerador vira 1. Regra geral: módulo de tc menos u.</li>
                 <li><strong>Euler (e):</strong> Fator de maturação limitante sobre as falhas anuais.</li>
             </ul>
@@ -472,7 +472,7 @@ html_code = """
                 eulerTerm = Math.pow((1 + (1 / tc)), tc);
             }
 
-            // Termo 2: Logaritmo Duplo da Gama: ln(ln(Γ(α + 2)^tc))
+            // Termo 2: Logaritmo Duplo da Gama ao Quadrado: (ln(ln(Γ(α + 2)^tc)))^2
             // Propriedade algoritmica para evitar travamento: ln(tc * ln(Γ))
             const gammaVal = gamma(alpha + 2);
             let innerLog = Math.log(gammaVal);
@@ -483,7 +483,8 @@ html_code = """
             let logLogTerm = 0;
             if (tc > 0) {
                 const multiLog = tc * innerLog;
-                logLogTerm = multiLog > 0 ? Math.log(multiLog) : 0;
+                // Aplicação da elevação ao quadrado inserida aqui:
+                logLogTerm = multiLog > 0 ? Math.pow(Math.log(multiLog), 2) : 0;
             } else {
                 logLogTerm = 0; // Se tc=0, não há acumulo temporal para catapulta
             }
