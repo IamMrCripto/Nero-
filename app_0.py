@@ -1,3 +1,25 @@
+import streamlit as st
+import streamlit.components.v1 as components
+
+# Configuração da página para ocupar a tela toda
+st.set_page_config(layout="wide", page_title="EngineRel Analytics")
+
+# O código HTML/CSS/JS deve ficar dentro de uma variável de texto (triple quotes)
+html_code = """
+<!DOCTYPE html>
+<html lang="pt-BR">
+<style>
+    /* O erro estava aqui, porque o Python tentava ler isso sem o componente HTML */
+    background: linear-gradient(180deg, rgba(0, 180, 216, 0.1) 0%, var(--bg-dark) 100%);
+</style>
+<body>
+    ...
+</body>
+</html>
+"""
+
+# Comando que faz o Streamlit renderizar o site corretamente
+components.html(html_code, height=1200, scrolling=True)
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -420,3 +442,4 @@
     </script>
 </body>
 </html>
+
