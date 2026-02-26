@@ -1,9 +1,11 @@
 import streamlit as st
 import streamlit.components.v1 as components
 
-# ==========================================
-# CONFIGURAÇÃO DO STREAMLIT
-# ==========================================
+# =====================================================================
+# CONFIGURAÇÃO GLOBAL DO STREAMLIT
+# Configurações iniciais da página para garantir que o layout use
+# toda a largura disponível e oculte os elementos nativos do framework.
+# =====================================================================
 st.set_page_config(
     page_title="EngineRel | Reliability Analytics",
     page_icon="⚙️",
@@ -11,54 +13,90 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Ocultar os menus padrões do Streamlit para dar aspecto de site real
+# Injeção de CSS nativo no Streamlit para ocultar cabeçalho, rodapé e menu
 hide_st_style = """
-            <style>
-            #MainMenu {visibility: hidden;}
-            footer {visibility: hidden;}
-            header {visibility: hidden;}
-            </style>
-            """
+<style>
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+    .block-container {
+        padding-top: 0rem;
+        padding-bottom: 0rem;
+        padding-left: 0rem;
+        padding-right: 0rem;
+    }
+</style>
+"""
 st.markdown(hide_st_style, unsafe_allow_html=True)
 
-# ==========================================
-# CÓDIGO FONTE DO SISTEMA (HTML + CSS + JS)
-# (Usando 'r' antes da string para evitar que o Python quebre as barras do LaTeX)
-# ==========================================
+# =====================================================================
+# CÓDIGO FONTE DA APLICAÇÃO (SINGLE PAGE APPLICATION)
+# Contém HTML semântico, CSS (Dark/Neon Theme) e JavaScript (Lógica).
+# Utilizamos 'r' antes da string para preservar as barras do LaTeX.
+# =====================================================================
 html_code = r"""
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EngineRel - Monitoramento Dinâmico</title>
+    <meta name="description" content="Sistema de análise de confiabilidade de propulsores baseado em fadiga logarítmica.">
+    <title>EngineRel - Dashboard Telemétrico</title>
     
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800;900&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
     
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     
     <style>
-        /* =========================================
-           SISTEMA DE CORES E VARIÁVEIS (DARK THEME)
-           ========================================= */
+        /* =====================================================================
+           SISTEMA DE DESIGN: VARIÁVEIS GLOBAIS
+           Definição de paleta de cores, tipografia e espaçamentos.
+           ===================================================================== */
         :root {
-            --bg-base: #0d1117;         /* Fundo estilo GitHub Dark / AWS */
-            --bg-panel: #161b22;        /* Fundo dos cartões */
-            --bg-input: #010409;        /* Fundo das caixas de texto */
-            --blue-primary: #00b4d8;    /* Azul Claro Vivo */
-            --blue-glow: rgba(0, 180, 216, 0.2);
-            --green-primary: #00ff87;   /* Verde Fluorescente */
-            --green-glow: rgba(0, 255, 135, 0.2);
-            --text-main: #c9d1d9;
-            --text-muted: #8b949e;
-            --border-color: #30363d;
+            /* Paleta de Cores de Fundo */
+            --bg-base: #09090b;
+            --bg-panel: #18181b;
+            --bg-input: #000000;
+            
+            /* Paleta de Cores de Destaque (Neon) */
+            --blue-primary: #00d2ff;
+            --blue-glow: rgba(0, 210, 255, 0.3);
+            
+            --green-primary: #39ff14;
+            --green-glow: rgba(57, 255, 20, 0.2);
+            
+            --red-primary: #ff2a2a;
+            --red-glow: rgba(255, 42, 42, 0.3);
+            
+            --purple-primary: #b026ff;
+            --purple-glow: rgba(176, 38, 255, 0.2);
+            
+            --orange-primary: #ffb86c;
+            --orange-glow: rgba(255, 184, 108, 0.2);
+            
+            /* Tipografia e Bordas */
+            --text-main: #e4e4e7;
+            --text-muted: #a1a1aa;
+            --border-color: #27272a;
+            
             --font-ui: 'Inter', sans-serif;
             --font-code: 'JetBrains Mono', monospace;
+            
+            /* Sombras Padrão */
+            --shadow-panel: 0 10px 30px rgba(0, 0, 0, 0.8);
         }
 
-        /* RESET BÁSICO */
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        /* =====================================================================
+           RESET E CONFIGURAÇÕES BÁSICAS
+           ===================================================================== */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
         
         body {
             background-color: var(--bg-base);
@@ -67,48 +105,104 @@ html_code = r"""
             line-height: 1.6;
             padding: 20px;
             overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
 
-        /* SCROLLBAR CUSTOMIZADA */
-        ::-webkit-scrollbar { width: 10px; }
-        ::-webkit-scrollbar-track { background: var(--bg-base); }
-        ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 5px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--blue-primary); }
+        /* Customização da Barra de Rolagem */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-base);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 5px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--blue-primary);
+        }
 
-        /* =========================================
-           CABEÇALHO (HERO SECTION)
-           ========================================= */
-        .hero {
+        /* =====================================================================
+           CABEÇALHO E NAVEGAÇÃO (TABS)
+           ===================================================================== */
+        .app-header {
             text-align: center;
-            padding: 60px 20px;
-            background: linear-gradient(180deg, rgba(0, 180, 216, 0.05) 0%, var(--bg-base) 100%);
-            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 30px;
+            padding-top: 20px;
+        }
+
+        .nav-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
             margin-bottom: 40px;
-            border-radius: 16px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
         }
 
-        .hero h1 {
-            font-size: 4rem;
-            font-weight: 900;
-            letter-spacing: -2px;
-            margin-bottom: 10px;
-            color: #ffffff;
-        }
-
-        .hero h1 span.blue { color: var(--blue-primary); text-shadow: 0 0 20px var(--blue-glow); }
-        .hero h1 span.green { color: var(--green-primary); text-shadow: 0 0 20px var(--green-glow); }
-
-        .hero p {
-            font-size: 1.2rem;
+        .tab-btn {
+            background: transparent;
             color: var(--text-muted);
-            max-width: 600px;
-            margin: 0 auto;
+            border: none;
+            font-size: 1.2rem;
+            font-weight: 800;
+            cursor: pointer;
+            padding: 10px 20px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.3s ease;
+            position: relative;
         }
 
-        /* =========================================
-           GRID PRINCIPAL
-           ========================================= */
-        .dashboard-container {
+        .tab-btn:hover {
+            color: var(--text-main);
+        }
+
+        .tab-btn.active {
+            color: var(--blue-primary);
+            text-shadow: 0 0 10px var(--blue-glow);
+        }
+
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -11px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: var(--blue-primary);
+            box-shadow: 0 0 10px var(--blue-glow);
+        }
+
+        /* Transições de Conteúdo das Abas */
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            flex-grow: 1;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* =====================================================================
+           ESTRUTURA DE GRIDS E PAINÉIS
+           ===================================================================== */
+        .grid-container {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 40px;
@@ -116,104 +210,153 @@ html_code = r"""
             margin: 0 auto;
         }
 
+        .single-container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
         .panel {
             background-color: var(--bg-panel);
             border: 1px solid var(--border-color);
             border-radius: 16px;
             padding: 40px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
-            transition: transform 0.3s ease;
+            box-shadow: var(--shadow-panel);
+            position: relative;
+            overflow: hidden;
         }
 
-        .panel:hover {
-            border-color: #4b5563;
+        .panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--blue-primary), var(--purple-primary));
+            opacity: 0.5;
         }
 
-        /* =========================================
-           IMAGENS E FÓRMULA (LADO ESQUERDO)
-           ========================================= */
+        .panel-title {
+            color: #ffffff;
+            font-size: 1.8rem;
+            font-weight: 900;
+            margin-bottom: 25px;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        /* =====================================================================
+           ABA 1: TEORIA E SISTEMAS DINÂMICOS
+           ===================================================================== */
+        .theory-text {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+            text-align: justify;
+            line-height: 1.8;
+        }
+
+        .theory-highlight {
+            color: var(--purple-primary);
+            font-weight: 800;
+            text-shadow: 0 0 10px var(--purple-glow);
+        }
+        
+        .math-box {
+            background-color: var(--bg-input);
+            padding: 30px;
+            border-radius: 12px;
+            border: 1px solid var(--purple-primary);
+            box-shadow: inset 0 0 30px var(--purple-glow);
+            text-align: center;
+            font-size: 1.5rem;
+            margin: 30px 0;
+            overflow-x: auto;
+        }
+
+        .feature-list {
+            list-style-type: none;
+            margin-top: 20px;
+        }
+
+        .feature-list li {
+            position: relative;
+            padding-left: 25px;
+            margin-bottom: 15px;
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        .feature-list li::before {
+            content: '⊳';
+            position: absolute;
+            left: 0;
+            color: var(--blue-primary);
+            font-weight: bold;
+        }
+
+        /* =====================================================================
+           ABA 2: DASHBOARD (GALERIA E FORMULÁRIOS)
+           ===================================================================== */
         .image-gallery {
             display: grid;
-            grid-template-columns: repeat(2, 1fr); /* Ajustado para as 2 imagens em anexo */
+            grid-template-columns: repeat(2, 1fr);
             gap: 15px;
-            margin-bottom: 25px;
+            margin-bottom: 30px;
         }
 
         .image-gallery img {
             width: 100%;
-            height: 250px; /* Ajuste de altura para melhor visualização das imagens verticais */
+            height: 220px;
             object-fit: cover;
             border-radius: 8px;
             border: 1px solid var(--border-color);
-            filter: grayscale(40%);
-            transition: filter 0.3s ease;
+            transition: all 0.4s ease;
+            filter: grayscale(60%) opacity(0.8);
         }
 
         .image-gallery img:hover {
-            filter: grayscale(0%);
+            filter: grayscale(0%) opacity(1);
             border-color: var(--blue-primary);
+            box-shadow: 0 0 20px var(--blue-glow);
+            transform: scale(1.02);
         }
 
-        .math-container {
-            background-color: var(--bg-input);
-            padding: 25px;
-            border-radius: 12px;
-            border: 1px solid var(--blue-primary);
-            box-shadow: inset 0 0 20px var(--blue-glow);
-            margin: 20px 0;
-            overflow-x: auto;
-            text-align: center;
-            font-size: 1.3rem;
-        }
-
-        .theory-list {
-            list-style: none;
-            color: var(--text-muted);
-            font-size: 0.95rem;
+        .alert-box {
+            background: var(--bg-input);
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid var(--blue-primary);
             margin-top: 20px;
         }
 
-        .theory-list li {
-            margin-bottom: 10px;
-            padding-left: 20px;
-            position: relative;
+        .alert-box p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            line-height: 1.5;
         }
 
-        .theory-list li::before {
-            content: '>';
-            position: absolute;
-            left: 0;
-            color: var(--blue-primary);
-            font-weight: 900;
-        }
-
-        /* =========================================
-           FORMULÁRIO E INPUTS (LADO DIREITO)
-           ========================================= */
-        .form-title {
-            color: #fff;
-            font-size: 1.5rem;
-            font-weight: 800;
-            margin-bottom: 25px;
-            border-bottom: 2px solid var(--border-color);
-            padding-bottom: 10px;
-        }
-
+        /* Campos de Formulário */
         .input-group {
             margin-bottom: 25px;
+            position: relative;
         }
 
         .input-group label {
             display: block;
             font-size: 0.85rem;
-            font-weight: 600;
+            font-weight: 800;
             color: var(--blue-primary);
             text-transform: uppercase;
-            letter-spacing: 1px;
             margin-bottom: 8px;
+            letter-spacing: 1px;
         }
 
-        .input-group input, .input-group select {
+        .input-group input, 
+        .input-group select {
             width: 100%;
             background-color: var(--bg-input);
             border: 1px solid var(--border-color);
@@ -225,76 +368,77 @@ html_code = r"""
             transition: all 0.3s ease;
         }
 
-        .input-group input:focus, .input-group select:focus {
+        .input-group input:focus, 
+        .input-group select:focus {
             outline: none;
-            border-color: var(--green-primary);
-            box-shadow: 0 0 15px var(--green-glow);
+            border-color: var(--blue-primary);
+            box-shadow: 0 0 15px var(--blue-glow);
         }
 
+        /* Botão de Processamento */
         .btn-process {
             width: 100%;
             background: transparent;
-            color: var(--green-primary);
-            border: 2px solid var(--green-primary);
+            color: var(--blue-primary);
+            border: 2px solid var(--blue-primary);
             padding: 18px;
             font-family: var(--font-ui);
             font-size: 1.2rem;
-            font-weight: 800;
+            font-weight: 900;
             text-transform: uppercase;
             letter-spacing: 2px;
             border-radius: 8px;
             cursor: pointer;
             transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
             margin-top: 10px;
         }
 
         .btn-process:hover {
-            background: var(--green-primary);
+            background: var(--blue-primary);
             color: #000000;
-            box-shadow: 0 0 30px var(--green-glow);
+            box-shadow: 0 0 30px var(--blue-glow);
         }
 
-        /* =========================================
-           PAINEL DE RESULTADOS TELEMÉTRICOS
-           ========================================= */
+        .btn-process:disabled {
+            border-color: var(--border-color);
+            color: var(--border-color);
+            cursor: not-allowed;
+            background: transparent;
+            box-shadow: none;
+        }
+
+        /* =====================================================================
+           RESULTADOS TELEMÉTRICOS
+           ===================================================================== */
         .telemetry-results {
             display: none;
             margin-top: 30px;
             padding: 30px;
             background-color: var(--bg-input);
             border-radius: 12px;
-            border-left: 5px solid var(--blue-primary);
-            animation: slideDown 0.5s ease forwards;
-        }
-
-        @keyframes slideDown {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .result-header {
-            font-size: 1rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            margin-bottom: 10px;
+            border-left: 5px solid var(--border-color);
+            transition: all 0.5s ease;
         }
 
         .result-r {
             font-family: var(--font-code);
-            font-size: 4rem;
+            font-size: 4.5rem;
             font-weight: 900;
             line-height: 1;
-            margin-bottom: 20px;
-            color: var(--green-primary);
+            margin: 15px 0;
+            text-shadow: 0 0 20px rgba(0,0,0,0.5);
         }
 
         .result-status {
-            font-weight: 800;
+            font-weight: 900;
             font-size: 1.2rem;
-            padding: 10px 15px;
+            padding: 12px 20px;
             border-radius: 6px;
             display: inline-block;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         .stats-grid {
@@ -313,232 +457,479 @@ html_code = r"""
             border: 1px solid var(--border-color);
         }
 
-        .stat-label { font-size: 0.8rem; color: var(--text-muted); }
-        .stat-val { font-family: var(--font-code); font-size: 1.2rem; color: #fff; margin-top: 5px; }
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-weight: 800;
+        }
 
-        @media (max-width: 1000px) {
-            .dashboard-container { grid-template-columns: 1fr; }
-            .hero h1 { font-size: 2.5rem; }
+        .stat-val {
+            font-family: var(--font-code);
+            font-size: 1.3rem;
+            color: #ffffff;
+            margin-top: 5px;
+            font-weight: 700;
+        }
+
+        /* =====================================================================
+           RODAPÉ E LOADING SIMULATION
+           ===================================================================== */
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+            color: var(--blue-primary);
+            font-family: var(--font-code);
+            font-weight: bold;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { opacity: 0.5; }
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--border-color);
+            font-size: 0.9rem;
+            margin-top: auto;
+        }
+
+        /* =====================================================================
+           MEDIA QUERIES (RESPONSIVIDADE)
+           ===================================================================== */
+        @media (max-width: 1200px) {
+            .grid-container {
+                gap: 20px;
+            }
+            .panel {
+                padding: 30px;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .grid-container {
+                grid-template-columns: 1fr;
+            }
+            .result-r {
+                font-size: 3.5rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .nav-tabs {
+                flex-direction: column;
+                align-items: center;
+            }
+            .tab-btn {
+                width: 100%;
+                text-align: center;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
 
-    <header class="hero">
-        <h1>Engine<span class="blue">Rel</span> <span class="green">Analytics</span></h1>
-        <p>Modelo de Inteligência de Confiabilidade Baseado em Fadiga Logarítmica e Uso Dinâmico</p>
+    <header class="app-header">
+        <h1 style="font-size: 2.5rem; font-weight: 900; color: #fff;">
+            Engine<span style="color: var(--blue-primary)">Rel</span>
+        </h1>
     </header>
 
-    <main class="dashboard-container">
-        
-        <section class="panel left-panel">
-            <h2 style="color: #fff; margin-bottom: 20px; font-weight: 800;">Alvos de Propulsão</h2>
-            
-            <div class="image-gallery">
-                <img src="BCO.46320da6-8731-4951-83d9-c2b5fd96709e.jpg" alt="Motor de Combustão em Chamas">
-                <img src="BCO.ad96e715-3f80-4890-8452-c916d844511e.jpg" alt="Propulsor Foguete em Ignição">
+    <nav class="nav-tabs" aria-label="Navegação Principal">
+        <button class="tab-btn active" onclick="openTab('tab-theory')" id="btn-theory">
+            Visão & Teoria
+        </button>
+        <button class="tab-btn" onclick="openTab('tab-dashboard')" id="btn-dashboard">
+            Dashboard Telemétrico
+        </button>
+    </nav>
+
+    <main id="tab-theory" class="tab-content active" role="tabpanel">
+        <div class="single-container panel">
+            <div class="panel-title">
+                Modelagem Super-Quadrática
+                <span style="font-size: 0.9rem; color: var(--text-muted); font-weight: 400;">v2.5.0</span>
             </div>
 
-            <h3 style="color: var(--blue-primary); margin-top: 30px;">Algoritmo Estrutural</h3>
-            
-            <div class="math-container">
-                $$ R = \frac{\left(1 + \frac{1}{t_c}\right)^{t_c} \cdot \left(\ln\left(\ln\left(\Gamma(\alpha + 2)^{t_c}\right)\right)\right)^2 \cdot e^{\alpha \cdot \lambda}}{u} $$
+            <p class="theory-text">
+                A fórmula do <strong>EngineRel</strong> transcende a simples métrica de falhas pontuais. 
+                Ela é uma abstração matemática projetada para descrever o comportamento de um 
+                <span class="theory-highlight">Sistema Dinâmico Não-Linear</span>. 
+                Sistemas mecânicos de alta complexidade operam em um estado de equilíbrio tênue, 
+                onde o tempo absoluto, o desgaste físico e a consistência de uso interagem de forma caótica.
+            </p>
+
+            <div class="math-box">
+                $$ R = \frac{\left(1 + \frac{1}{t_c}\right)^{t_c} \cdot \left(\ln\left(\ln\left(\Gamma(\alpha + 2)^{t_c}\right)\right)\right)^{2.5} \cdot e^{\alpha \cdot \lambda}}{u} $$
             </div>
 
-            <ul class="theory-list">
-                <li>O sistema processa todas as variáveis de tempo estritamente em <strong>minutos</strong>.</li>
-                <li><strong>Gama (Γ):</strong> Catapulta o estresse acumulado. Processado como logaritmo duplo ao quadrado para amplificação exponencial controlada.</li>
-                <li><strong>Alpha (α):</strong> Dinâmico. Se <i>tc = 0</i>, α = ln(|u|). Se <i>tc = u</i>, o numerador vira 1. Regra geral: módulo de tc menos u.</li>
-                <li><strong>Euler (e):</strong> Fator de maturação limitante sobre as falhas anuais.</li>
+            <h3 style="color: #ffffff; margin: 40px 0 20px 0; font-weight: 800;">Análise Vetorial do Sistema</h3>
+            
+            <ul class="feature-list">
+                <li>
+                    <strong>O Atrator de Euler:</strong> O termo \( (1 + 1/t_c)^{t_c} \) atua como um atrator de 
+                    estabilidade no espaço de fase. À medida que o tempo (\( t_c \)) passa sem interrupções, 
+                    o sistema converge assintoticamente para a constante de Euler (\( e \)), sugerindo matematicamente 
+                    que as falhas prematuras (mortalidade infantil de engenharia) foram superadas.
+                </li>
+                <li>
+                    <strong>Bifurcação por Fadiga (Expoente 2.5):</strong> Elevamos a compressão do logaritmo duplo 
+                    a \( 2.5 \). Na teoria dos sistemas dinâmicos, isso induz um crescimento 
+                    <span class="theory-highlight">super-quadrático</span>. Após um período prolongado de latência, 
+                    a degradação em nível molecular rompe o equilíbrio estrutural, e o risco absoluto (\( R \)) 
+                    dispara agressivamente, modelando a fase de desgaste da Curva da Banheira.
+                </li>
+                <li>
+                    <strong>Variáveis de Estado Contínuas:</strong> O volume de trabalho constante (\( u \)) no denominador 
+                    funciona como uma "força de amortecimento viscoso". Ativos mecânicos em operação ininterrupta 
+                    tendem a comprovar sua integridade material, forçando o algoritmo a diluir o risco acumulado.
+                </li>
             </ul>
-        </section>
-
-        <section class="panel right-panel">
-            <h2 class="form-title">Console de Telemetria</h2>
-            
-            <form id="engineForm">
-                <div class="input-group">
-                    <label>Categoria do Equipamento</label>
-                    <select id="engineType">
-                        <option value="Combustão">Motor V8 / V6 (Automotivo)</option>
-                        <option value="Aeroespacial">Turbofã (Aeroespacial)</option>
-                        <option value="Propulsor">Propulsor Foguete (Espacial)</option>
-                        <option value="Elétrico">Motor Elétrico Industrial</option>
-                    </select>
-                </div>
-
-                <div class="input-group">
-                    <label>Número de falhas nos últimos 365 dias (Gera o λ)</label>
-                    <input type="number" id="failures" value="2" min="0" step="1" required>
-                </div>
-
-                <div class="input-group">
-                    <label>Tempo desde o último conserto (Em Dias)</label>
-                    <input type="number" id="tc_days" value="90" min="0" step="0.1" required>
-                </div>
-
-                <div class="input-group">
-                    <label>Uso médio diário (Em Horas)</label>
-                    <input type="number" id="u_hours" value="18" min="0.1" max="24" step="0.1" required>
-                </div>
-
-                <button type="submit" class="btn-process">Processar Confiabilidade</button>
-            </form>
-
-            <div class="telemetry-results" id="telemetryPanel">
-                <div class="result-header">Índice Dinâmico R (Risco)</div>
-                <div class="result-r" id="valR">0.000000</div>
-                <div class="result-status" id="statusMessage">Aguardando...</div>
-
-                <div class="stats-grid">
-                    <div class="stat-box">
-                        <div class="stat-label">TC Analisado (Minutos)</div>
-                        <div class="stat-val" id="valTcMin">0</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-label">Uso Diário (Minutos)</div>
-                        <div class="stat-val" id="valUMin">0</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-label">Fator de Distância (α)</div>
-                        <div class="stat-val" id="valAlpha">0.000</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-label">Taxa de Falha (λ)</div>
-                        <div class="stat-val" id="valLambda">0.000</div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
+        </div>
     </main>
 
+    <main id="tab-dashboard" class="tab-content" role="tabpanel">
+        <div class="grid-container">
+            
+            <section class="panel">
+                <div class="panel-title">
+                    Alvos de Propulsão
+                    <span style="font-size: 1.2rem;">🚀</span>
+                </div>
+                
+                <div class="image-gallery">
+                    <img src="https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?auto=format&fit=crop&q=80" alt="Motor de Combustão V8 em operação com alta temperatura">
+                    <img src="https://images.unsplash.com/photo-1541185933-ef5d8ed016c2?auto=format&fit=crop&q=80" alt="Exaustão de um propulsor de foguete espacial durante lançamento">
+                </div>
+                
+                <div class="alert-box">
+                    <p>
+                        <strong>⚠️ Aviso de Restrição do Sistema:</strong><br>
+                        O núcleo algorítmico do índice \( R \) foi atualizado para a sensibilidade crítica (2.5). 
+                        Tempos ociosos prolongados ou obsolescência estrutural gerarão picos exponenciais no cálculo de risco. 
+                        Valide rigorosamente a entrada de Uso Diário (\( u \)) para evitar falsos positivos de colapso.
+                    </p>
+                </div>
+            </section>
+
+            <section class="panel">
+                <div class="panel-title">
+                    Console de Telemetria
+                    <span style="font-size: 1.2rem;">⏱️</span>
+                </div>
+                
+                <form id="engineForm" novalidate>
+                    <div class="input-group">
+                        <label for="engineType">Perfil Estrutural do Equipamento</label>
+                        <select id="engineType" name="engineType">
+                            <option value="Combustão">Motor V8 / V6 (Automotivo Pesado)</option>
+                            <option value="Aeroespacial">Turbofã (Aeroespacial Comercial)</option>
+                            <option value="Propulsor">Propulsor Criogênico (Espacial)</option>
+                            <option value="Gerador">Gerador a Diesel (Uso Contínuo)</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="failures">Eventos de Falha (Histórico 365 dias)</label>
+                        <input type="number" id="failures" name="failures" value="3" min="0" step="1" required 
+                               placeholder="Ex: 2">
+                    </div>
+
+                    <div class="input-group">
+                        <label for="tc_days">Ciclo desde o último reparo (Em Dias)</label>
+                        <input type="number" id="tc_days" name="tc_days" value="7000" min="0" step="0.1" required 
+                               placeholder="Ex: 365">
+                    </div>
+
+                    <div class="input-group">
+                        <label for="u_hours">Carga Operacional Diária Média (Em Horas)</label>
+                        <input type="number" id="u_hours" name="u_hours" value="18" min="0.1" max="24" step="0.1" required 
+                               placeholder="Ex: 12.5">
+                    </div>
+
+                    <button type="submit" class="btn-process" id="btnSubmit">
+                        Processar Vetor de Risco (R)
+                    </button>
+                    
+                    <div class="loading-spinner" id="loadingState">
+                        [ CALIBRANDO MATRIZ DE DADOS... AGUARDE ]
+                    </div>
+                </form>
+
+                <div class="telemetry-results" id="telemetryPanel">
+                    <div style="font-size: 0.9rem; color: var(--text-muted); font-weight: 800; letter-spacing: 2px;">
+                        ÍNDICE GLOBAL DE RISCO ESTRUTURAL
+                    </div>
+                    
+                    <div class="result-r" id="valR">0.000000</div>
+                    <div class="result-status" id="statusMessage">Aguardando telemetria...</div>
+
+                    <div class="stats-grid">
+                        <div class="stat-box">
+                            <div class="stat-label">Minutos Acumulados (tc)</div>
+                            <div class="stat-val" id="valTcMin">0</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">Minutos Uso Diário (u)</div>
+                            <div class="stat-val" id="valUMin">0</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">Fator de Desvio (α)</div>
+                            <div class="stat-val" id="valAlpha">0.000000</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">Taxa Lambda Anual (λ)</div>
+                            <div class="stat-val" id="valLambda">0.000000</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+    
+    <footer>
+        EngineRel Analytics System &copy; 2026. Desenvolvido para modelagem de ambientes extremos.
+    </footer>
+
     <script>
-        // ==========================================
-        // 1. APROXIMAÇÃO DE LANCZOS (FUNÇÃO GAMMA)
-        // ==========================================
+        /**
+         * FUNÇÃO DE CONTROLE DE INTERFACE (SPA ROUTING)
+         * Alterna entre as abas alterando as classes CSS ativas.
+         * @param {string} tabId - O ID do elemento <main> a ser exibido.
+         */
+        function openTab(tabId) {
+            try {
+                // Esconde todas as abas de conteúdo
+                const contents = document.querySelectorAll('.tab-content');
+                contents.forEach(tab => {
+                    tab.classList.remove('active');
+                });
+
+                // Remove o estilo ativo de todos os botões
+                const buttons = document.querySelectorAll('.tab-btn');
+                buttons.forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                
+                // Ativa a aba solicitada e o botão correspondente
+                document.getElementById(tabId).classList.add('active');
+                event.currentTarget.classList.add('active');
+            } catch (error) {
+                console.error("Erro na navegação de abas: ", error);
+            }
+        }
+
+        /**
+         * APROXIMAÇÃO DE LANCZOS PARA A FUNÇÃO GAMA
+         * A Função Gama estende o fatorial para números complexos e reais.
+         * Essa implementação utiliza coeficientes pré-calculados para alta precisão.
+         * @param {number} z - O valor de entrada.
+         * @returns {number} O valor aproximado de Gama(z).
+         */
         function gamma(z) {
+            // Constantes de Lanczos para g = 7
             const p = [
-                0.99999999999980993, 676.5203681218851, -1259.1392167224028,
-                771.32342877765313, -176.61502916214059, 12.507343278686905,
-                -0.13857109526572012, 9.9843695780195716e-6, 1.5056327351493116e-7
+                0.99999999999980993, 
+                676.5203681218851, 
+                -1259.1392167224028, 
+                771.32342877765313, 
+                -176.61502916214059, 
+                12.507343278686905, 
+                -0.13857109526572012, 
+                9.9843695780195716e-6, 
+                1.5056327351493116e-7
             ];
+            
             const g = 7;
-            if (z < 0.5) return Math.PI / (Math.sin(Math.PI * z) * gamma(1 - z));
+            
+            // Fórmula de reflexão se z < 0.5
+            if (z < 0.5) {
+                return Math.PI / (Math.sin(Math.PI * z) * gamma(1 - z));
+            }
+            
             z -= 1;
             let x = p[0];
+            
             for (let i = 1; i < g + 2; i++) {
                 x += p[i] / (z + i);
             }
+            
             let t = z + g + 0.5;
+            
+            // Equação final de Lanczos
             return Math.sqrt(2 * Math.PI) * Math.pow(t, z + 0.5) * Math.exp(-t) * x;
         }
 
-        // ==========================================
-        // 2. MOTOR DE CÁLCULO E INTERFACE
-        // ==========================================
+        /**
+         * MOTOR DE CÁLCULO E MANIPULAÇÃO DO DOM
+         * Intercepta o envio do formulário, processa os dados matemáticos,
+         * simula o carregamento e atualiza a interface com as cores apropriadas.
+         */
         document.getElementById('engineForm').addEventListener('submit', function(e) {
+            // Impede o recarregamento da página padrão do form HTML
             e.preventDefault();
 
-            // Captura
-            const failures = parseFloat(document.getElementById('failures').value);
-            const tc_days = parseFloat(document.getElementById('tc_days').value);
-            const u_hours = parseFloat(document.getElementById('u_hours').value);
+            // 1. CAPTURA E VALIDAÇÃO DOS DADOS DE ENTRADA
+            const inputFailures = document.getElementById('failures').value;
+            const inputTcDays = document.getElementById('tc_days').value;
+            const inputUHours = document.getElementById('u_hours').value;
 
-            // Conversão Obrigatória para Minutos
-            const tc = tc_days * 24 * 60;
-            const u = u_hours * 60;
-
-            // Variável Lambda (λ)
-            const lambda = failures / 365.0;
-
-            // Regras Estritas do Fator Alfa (α)
-            let alpha = 0;
-            if (tc === 0) {
-                alpha = Math.log(Math.abs(u)) / 1; // tc é 0, denominador seria 1
-            } else if (u === tc) {
-                alpha = 1 / (tc + 1); // Numerador vira 1
-            } else {
-                alpha = Math.abs(tc - u) / (tc + 1); // Regra Geral
+            // Verificação de inputs vazios ou inválidos
+            if (!inputFailures || !inputTcDays || !inputUHours) {
+                alert("Erro de Validação: Todos os parâmetros telemétricos são obrigatórios.");
+                return;
             }
 
-            // ==========================================
-            // IMPLEMENTAÇÃO RIGOROSA DA FÓRMULA
-            // ==========================================
-            
-            // Termo 1: Euler: (1 + 1/tc)^tc
-            let eulerTerm = 1; // Padrão se tc = 0
-            if (tc > 0) {
-                eulerTerm = Math.pow((1 + (1 / tc)), tc);
+            const failures = parseFloat(inputFailures);
+            const tcDays = parseFloat(inputTcDays);
+            const uHours = parseFloat(inputUHours);
+
+            if (uHours <= 0 || uHours > 24) {
+                alert("Aviso: O uso diário deve ser estritamente maior que 0 e máximo de 24 horas.");
+                return;
             }
 
-            // Termo 2: Logaritmo Duplo da Gama ao Quadrado: (ln(ln(Γ(α + 2)^tc)))^2
-            // Propriedade algoritmica para evitar travamento: ln(tc * ln(Γ))
-            const gammaVal = gamma(alpha + 2);
-            let innerLog = Math.log(gammaVal);
-            
-            // Proteção contra logaritmo de número negativo/zero
-            if (innerLog <= 0) innerLog = 0.000001; 
-            
-            let logLogTerm = 0;
-            if (tc > 0) {
-                const multiLog = tc * innerLog;
-                // Aplicação da elevação ao quadrado inserida aqui:
-                logLogTerm = multiLog > 0 ? Math.pow(Math.log(multiLog), 2) : 0;
-            } else {
-                logLogTerm = 0; // Se tc=0, não há acumulo temporal para catapulta
-            }
-
-            // Termo 3: Exponencial: e^(α * λ)
-            const expTerm = Math.exp(alpha * lambda);
-
-            // FÓRMULA FINAL R
-            let R = 0;
-            if (u > 0) {
-                R = (eulerTerm * logLogTerm * expTerm) / u;
-            }
-
-            // ==========================================
-            // ATUALIZAÇÃO DO DASHBOARD FRONT-END
-            // ==========================================
+            // Manipulação de UI para iniciar a simulação de processamento
+            const btnSubmit = document.getElementById('btnSubmit');
+            const loadingState = document.getElementById('loadingState');
             const panel = document.getElementById('telemetryPanel');
-            const displayR = document.getElementById('valR');
-            const statusMsg = document.getElementById('statusMessage');
+            
+            btnSubmit.style.display = 'none';
+            loadingState.style.display = 'block';
+            panel.style.display = 'none';
 
-            panel.style.display = 'block';
-            displayR.innerText = R.toFixed(6);
+            // Simulação assíncrona para efeito de processamento de dados (1.5 segundos)
+            setTimeout(() => {
+                
+                try {
+                    // 2. CONVERSÃO DE UNIDADES PARA A BASE MATEMÁTICA (MINUTOS)
+                    const tc = tcDays * 24 * 60; // Dias transformados em minutos
+                    const u = uHours * 60;       // Horas transformadas em minutos
+                    
+                    // Cálculo da taxa histórica de falha ao ano
+                    const lambda = failures / 365.0;
 
-            // Lógica de Cores e Alertas
-            if (R > 1.0) {
-                displayR.style.color = "#ff4444"; // Vermelho
-                panel.style.borderLeftColor = "#ff4444";
-                statusMsg.innerText = "PERIGO: LIMITE ESTRUTURAL ULTRAPASSADO";
-                statusMsg.style.backgroundColor = "rgba(255, 68, 68, 0.2)";
-                statusMsg.style.color = "#ff4444";
-            } else if (R > 0.5) {
-                displayR.style.color = "#ffb86c"; // Laranja
-                panel.style.borderLeftColor = "#ffb86c";
-                statusMsg.innerText = "ALERTA: FADIGA MODERADA / ALTA";
-                statusMsg.style.backgroundColor = "rgba(255, 184, 108, 0.2)";
-                statusMsg.style.color = "#ffb86c";
-            } else {
-                displayR.style.color = "var(--green-primary)"; // Verde
-                panel.style.borderLeftColor = "var(--green-primary)";
-                statusMsg.innerText = "NOMINAL: OPERAÇÃO SEGURA";
-                statusMsg.style.backgroundColor = "var(--green-glow)";
-                statusMsg.style.color = "var(--green-primary)";
-            }
+                    // 3. DEFINIÇÃO RIGOROSA DO FATOR ALFA (α)
+                    let alpha = 0;
+                    if (tc === 0) {
+                        // Trata divisão por zero se o tempo desde conserto for zero
+                        alpha = Math.log(Math.abs(u)) / 1;
+                    } else if (u === tc) {
+                        // Previne anulação completa caso uso seja exatamente igual ao tempo
+                        alpha = 1 / (tc + 1);
+                    } else {
+                        // Equação principal do fator de desvio de matriz
+                        alpha = Math.abs(tc - u) / (tc + 1);
+                    }
 
-            // Preenchimento das métricas menores
-            document.getElementById('valTcMin').innerText = tc.toLocaleString('pt-BR');
-            document.getElementById('valUMin').innerText = u.toLocaleString('pt-BR');
-            document.getElementById('valAlpha').innerText = alpha.toFixed(5);
-            document.getElementById('valLambda').innerText = lambda.toFixed(5);
+                    // 4. RESOLUÇÃO DA EQUAÇÃO DE RISCO (R)
+                    
+                    // 4.1. Termo Estabilizador de Euler
+                    let eulerTerm = 1;
+                    if (tc > 0) {
+                        eulerTerm = Math.pow((1 + (1 / tc)), tc);
+                    }
+
+                    // 4.2. Termo Catapulta de Fadiga (Logaritmo Duplo da Função Gama)
+                    const gammaVal = gamma(alpha + 2);
+                    let innerLog = Math.log(gammaVal);
+                    
+                    // Proteção de domínio para evitar NaN (Not a Number) em logaritmos naturais
+                    if (innerLog <= 0) {
+                        innerLog = 0.000001; 
+                    }
+                    
+                    let logLogTerm = 0;
+                    if (tc > 0) {
+                        const multiLog = tc * innerLog;
+                        
+                        // *** O EXPOENTE 2.5 APLICADO AQUI ***
+                        if (multiLog > 0) {
+                            logLogTerm = Math.pow(Math.log(multiLog), 2.5);
+                        } else {
+                            logLogTerm = 0;
+                        }
+                    }
+
+                    // 4.3. Termo Exponencial de Maturação de Falhas
+                    const expTerm = Math.exp(alpha * lambda);
+                    
+                    // 4.4. Síntese Final do Índice R
+                    let R = 0;
+                    if (u > 0) {
+                        R = (eulerTerm * logLogTerm * expTerm) / u;
+                    }
+
+                    // 5. ATUALIZAÇÃO DO FRONT-END E LÓGICA DE CORES
+                    const displayR = document.getElementById('valR');
+                    const statusMsg = document.getElementById('statusMessage');
+
+                    // Formatação do número para 4 casas decimais para legibilidade
+                    displayR.innerText = R.toFixed(4);
+
+                    // Lógica Condicional de Alertas Visuais
+                    if (R > 1.0) {
+                        // ESTADO: PERIGO (VERMELHO NEON)
+                        displayR.style.color = "var(--red-primary)";
+                        displayR.style.textShadow = "0 0 20px var(--red-glow)";
+                        panel.style.borderLeftColor = "var(--red-primary)";
+                        statusMsg.innerText = "CRÍTICO: COLAPSO ESTRUTURAL IMINENTE";
+                        statusMsg.style.backgroundColor = "var(--red-glow)";
+                        statusMsg.style.color = "var(--red-primary)";
+                        statusMsg.style.border = "1px solid var(--red-primary)";
+                    } 
+                    else if (R > 0.5) {
+                        // ESTADO: ALERTA (LARANJA NEON)
+                        displayR.style.color = "var(--orange-primary)";
+                        displayR.style.textShadow = "0 0 20px var(--orange-glow)";
+                        panel.style.borderLeftColor = "var(--orange-primary)";
+                        statusMsg.innerText = "ALERTA: FADIGA DE MATERIAL DETECTADA";
+                        statusMsg.style.backgroundColor = "var(--orange-glow)";
+                        statusMsg.style.color = "var(--orange-primary)";
+                        statusMsg.style.border = "1px solid var(--orange-primary)";
+                    } 
+                    else {
+                        // ESTADO: NOMINAL (VERDE NEON)
+                        displayR.style.color = "var(--green-primary)";
+                        displayR.style.textShadow = "0 0 20px var(--green-glow)";
+                        panel.style.borderLeftColor = "var(--green-primary)";
+                        statusMsg.innerText = "NOMINAL: INTEGRIDADE CONFIRMADA";
+                        statusMsg.style.backgroundColor = "var(--green-glow)";
+                        statusMsg.style.color = "var(--green-primary)";
+                        statusMsg.style.border = "1px solid var(--green-primary)";
+                    }
+
+                    // Alimentando a grade inferior de estatísticas isoladas
+                    document.getElementById('valTcMin').innerText = tc.toLocaleString('pt-BR');
+                    document.getElementById('valUMin').innerText = u.toLocaleString('pt-BR');
+                    document.getElementById('valAlpha').innerText = alpha.toFixed(6);
+                    document.getElementById('valLambda').innerText = lambda.toFixed(6);
+
+                } catch (error) {
+                    console.error("Falha Crítica no Processador Matemático:", error);
+                    alert("Ocorreu um erro no cálculo do vetor. Verifique o console.");
+                } finally {
+                    // Retorna a UI ao estado interativo, revelando os resultados
+                    loadingState.style.display = 'none';
+                    btnSubmit.style.display = 'block';
+                    panel.style.display = 'block';
+                }
+
+            }, 1500); // Fim do setTimeout (1.5s)
         });
     </script>
 </body>
 </html>
 """
 
-# Renderiza o HTML dentro do Streamlit ocupando a tela de forma harmoniosa
-components.html(html_code, height=1100, scrolling=True)
+# Renderização do Componente no Streamlit com altura dinâmica generosa
+components.html(html_code, height=1300, scrolling=True)
