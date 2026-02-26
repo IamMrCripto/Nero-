@@ -1,47 +1,54 @@
 import streamlit as st
 import streamlit.components.v1 as components
 
-# Configuração da página para ocupar a tela toda
-st.set_page_config(layout="wide", page_title="EngineRel Analytics")
+# ==========================================
+# CONFIGURAÇÃO DO STREAMLIT
+# ==========================================
+st.set_page_config(
+    page_title="EngineRel | Reliability Analytics",
+    page_icon="⚙️",
+    layout="wide",
+    initial_sidebar_state="collapsed"
+)
 
-# O código HTML/CSS/JS deve ficar dentro de uma variável de texto (triple quotes)
+# Ocultar os menus padrões do Streamlit para dar aspecto de site real
+hide_st_style = """
+            <style>
+            #MainMenu {visibility: hidden;}
+            footer {visibility: hidden;}
+            header {visibility: hidden;}
+            </style>
+            """
+st.markdown(hide_st_style, unsafe_allow_html=True)
+
+# ==========================================
+# CÓDIGO FONTE DO SISTEMA (HTML + CSS + JS)
+# ==========================================
 html_code = """
-<!DOCTYPE html>
-<html lang="pt-BR">
-<style>
-    /* O erro estava aqui, porque o Python tentava ler isso sem o componente HTML */
-    background: linear-gradient(180deg, rgba(0, 180, 216, 0.1) 0%, var(--bg-dark) 100%);
-</style>
-<body>
-    ...
-</body>
-</html>
-"""
-
-# Comando que faz o Streamlit renderizar o site corretamente
-components.html(html_code, height=1200, scrolling=True)
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EngineRel | Índice de Confiabilidade de Motores</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <title>EngineRel - Monitoramento Dinâmico</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800;900&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
+    
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     
     <style>
         /* =========================================
-           VARIÁVEIS DE COR E ESTILO (DESIGN SYSTEM)
+           SISTEMA DE CORES E VARIÁVEIS (DARK THEME)
            ========================================= */
         :root {
-            --bg-dark: #0a0c10;
-            --bg-panel: #161b22;
-            --bg-input: #010409;
-            --accent-blue: #00b4d8;
-            --accent-blue-glow: rgba(0, 180, 216, 0.4);
-            --accent-green: #00ff87;
-            --accent-green-glow: rgba(0, 255, 135, 0.3);
+            --bg-base: #0d1117;         /* Fundo estilo GitHub Dark / AWS */
+            --bg-panel: #161b22;        /* Fundo dos cartões */
+            --bg-input: #010409;        /* Fundo das caixas de texto */
+            --blue-primary: #00b4d8;    /* Azul Claro Vivo */
+            --blue-glow: rgba(0, 180, 216, 0.2);
+            --green-primary: #00ff87;   /* Verde Fluorescente */
+            --green-glow: rgba(0, 255, 135, 0.2);
             --text-main: #c9d1d9;
             --text-muted: #8b949e;
             --border-color: #30363d;
@@ -49,307 +56,374 @@ components.html(html_code, height=1200, scrolling=True)
             --font-code: 'JetBrains Mono', monospace;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
+        /* RESET BÁSICO */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
         body {
-            background-color: var(--bg-dark);
+            background-color: var(--bg-base);
             color: var(--text-main);
             font-family: var(--font-ui);
             line-height: 1.6;
+            padding: 20px;
             overflow-x: hidden;
         }
 
+        /* SCROLLBAR CUSTOMIZADA */
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-track { background: var(--bg-base); }
+        ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 5px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--blue-primary); }
+
         /* =========================================
-           LAYOUT E ESTRUTURA
+           CABEÇALHO (HERO SECTION)
            ========================================= */
-        header {
-            background: linear-gradient(180deg, rgba(0, 180, 216, 0.1) 0%, var(--bg-dark) 100%);
-            padding: 40px 20px;
+        .hero {
             text-align: center;
+            padding: 60px 20px;
+            background: linear-gradient(180deg, rgba(0, 180, 216, 0.05) 0%, var(--bg-base) 100%);
             border-bottom: 1px solid var(--border-color);
+            margin-bottom: 40px;
+            border-radius: 16px;
         }
 
-        header h1 {
-            color: #ffffff;
-            font-weight: 800;
-            font-size: 2.5rem;
-            letter-spacing: -1px;
+        .hero h1 {
+            font-size: 4rem;
+            font-weight: 900;
+            letter-spacing: -2px;
             margin-bottom: 10px;
+            color: #ffffff;
         }
 
-        header h1 span.blue { color: var(--accent-blue); }
-        header h1 span.green { color: var(--accent-green); }
+        .hero h1 span.blue { color: var(--blue-primary); text-shadow: 0 0 20px var(--blue-glow); }
+        .hero h1 span.green { color: var(--green-primary); text-shadow: 0 0 20px var(--green-glow); }
 
-        .container {
-            max-width: 1200px;
+        .hero p {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            max-width: 600px;
             margin: 0 auto;
-            padding: 40px 20px;
+        }
+
+        /* =========================================
+           GRID PRINCIPAL
+           ========================================= */
+        .dashboard-container {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 40px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .panel {
+            background-color: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+            transition: transform 0.3s ease;
+        }
+
+        .panel:hover {
+            border-color: #4b5563;
         }
 
         /* =========================================
-           SEÇÃO DA FÓRMULA E EXPLICAÇÃO
+           IMAGENS E FÓRMULA (LADO ESQUERDO)
            ========================================= */
-        .formula-section {
-            background-color: var(--bg-panel);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            position: relative;
-            overflow: hidden;
+        .image-gallery {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 25px;
         }
 
-        .formula-section::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 4px;
-            background: linear-gradient(90deg, var(--accent-blue), var(--accent-green));
-        }
-
-        .formula-display {
-            background-color: var(--bg-input);
-            padding: 20px;
-            border-radius: 8px;
-            font-size: 1.2rem;
-            overflow-x: auto;
-            margin: 20px 0;
-            border: 1px solid var(--border-color);
-            text-align: center;
-        }
-
-        .engine-image {
+        .image-gallery img {
             width: 100%;
-            height: 200px;
+            height: 120px;
             object-fit: cover;
             border-radius: 8px;
-            margin-top: 20px;
-            opacity: 0.8;
             border: 1px solid var(--border-color);
+            filter: grayscale(40%);
+            transition: filter 0.3s ease;
+        }
+
+        .image-gallery img:hover {
+            filter: grayscale(0%);
+            border-color: var(--blue-primary);
+        }
+
+        .math-container {
+            background-color: var(--bg-input);
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid var(--blue-primary);
+            box-shadow: inset 0 0 20px var(--blue-glow);
+            margin: 20px 0;
+            overflow-x: auto;
+            text-align: center;
+            font-size: 1.3rem;
+        }
+
+        .theory-list {
+            list-style: none;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-top: 20px;
+        }
+
+        .theory-list li {
+            margin-bottom: 10px;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .theory-list li::before {
+            content: '>';
+            position: absolute;
+            left: 0;
+            color: var(--blue-primary);
+            font-weight: 900;
         }
 
         /* =========================================
-           FORMULÁRIO E INPUTS
+           FORMULÁRIO E INPUTS (LADO DIREITO)
            ========================================= */
-        .calculator-panel {
-            background-color: var(--bg-panel);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 30px;
-            box-shadow: 0 0 20px var(--accent-blue-glow);
+        .form-title {
+            color: #fff;
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 25px;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 10px;
         }
 
-        .form-group {
-            margin-bottom: 20px;
+        .input-group {
+            margin-bottom: 25px;
         }
 
-        label {
+        .input-group label {
             display: block;
-            margin-bottom: 8px;
-            font-size: 0.9rem;
-            color: var(--text-muted);
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--blue-primary);
             text-transform: uppercase;
             letter-spacing: 1px;
+            margin-bottom: 8px;
         }
 
-        input, select {
+        .input-group input, .input-group select {
             width: 100%;
             background-color: var(--bg-input);
             border: 1px solid var(--border-color);
-            color: #fff;
-            padding: 14px;
-            border-radius: 6px;
+            color: #ffffff;
+            padding: 16px;
+            border-radius: 8px;
             font-family: var(--font-code);
-            font-size: 1rem;
+            font-size: 1.1rem;
             transition: all 0.3s ease;
         }
 
-        input:focus, select:focus {
+        .input-group input:focus, .input-group select:focus {
             outline: none;
-            border-color: var(--accent-blue);
-            box-shadow: 0 0 10px var(--accent-blue-glow);
+            border-color: var(--green-primary);
+            box-shadow: 0 0 15px var(--green-glow);
         }
 
-        button.btn-calc {
+        .btn-process {
             width: 100%;
             background: transparent;
-            color: var(--accent-green);
-            border: 2px solid var(--accent-green);
-            padding: 16px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.3s ease;
+            color: var(--green-primary);
+            border: 2px solid var(--green-primary);
+            padding: 18px;
+            font-family: var(--font-ui);
+            font-size: 1.2rem;
+            font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 2px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
             margin-top: 10px;
         }
 
-        button.btn-calc:hover {
-            background: var(--accent-green);
-            color: #000;
-            box-shadow: 0 0 20px var(--accent-green-glow);
+        .btn-process:hover {
+            background: var(--green-primary);
+            color: #000000;
+            box-shadow: 0 0 30px var(--green-glow);
         }
 
         /* =========================================
-           DASHBOARD DE RESULTADOS
+           PAINEL DE RESULTADOS TELEMÉTRICOS
            ========================================= */
-        .result-dashboard {
-            grid-column: 1 / -1;
-            background-color: var(--bg-panel);
-            border: 1px solid var(--accent-blue);
-            border-radius: 12px;
-            padding: 40px;
+        .telemetry-results {
             display: none;
-            animation: fadeIn 0.5s ease forwards;
+            margin-top: 30px;
+            padding: 30px;
+            background-color: var(--bg-input);
+            border-radius: 12px;
+            border-left: 5px solid var(--blue-primary);
+            animation: slideDown 0.5s ease forwards;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-20px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .result-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
+        .result-header {
+            font-size: 1rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
         }
 
-        .metric-card {
-            background-color: var(--bg-input);
-            padding: 20px;
-            border-radius: 8px;
-            border-left: 4px solid var(--accent-blue);
-        }
-
-        .metric-card.critical { border-left-color: #ff4444; }
-        .metric-card.safe { border-left-color: var(--accent-green); }
-
-        .metric-value {
+        .result-r {
             font-family: var(--font-code);
-            font-size: 2rem;
-            color: #fff;
-            margin-top: 10px;
+            font-size: 4rem;
+            font-weight: 900;
+            line-height: 1;
+            margin-bottom: 20px;
+            color: var(--green-primary);
         }
 
-        /* Responsividade */
-        @media (max-width: 900px) {
-            .container { grid-template-columns: 1fr; }
+        .result-status {
+            font-weight: 800;
+            font-size: 1.2rem;
+            padding: 10px 15px;
+            border-radius: 6px;
+            display: inline-block;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 25px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 25px;
+        }
+
+        .stat-box {
+            background: var(--bg-panel);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .stat-label { font-size: 0.8rem; color: var(--text-muted); }
+        .stat-val { font-family: var(--font-code); font-size: 1.2rem; color: #fff; margin-top: 5px; }
+
+        @media (max-width: 1000px) {
+            .dashboard-container { grid-template-columns: 1fr; }
+            .hero h1 { font-size: 2.5rem; }
         }
     </style>
 </head>
 <body>
 
-    <header>
+    <header class="hero">
         <h1>Engine<span class="blue">Rel</span> <span class="green">Analytics</span></h1>
-        <p>Plataforma de Mensuração Dinâmica de Confiabilidade para Motores de Alta Performance</p>
+        <p>Modelo de Inteligência de Confiabilidade Baseado em Fadiga Logarítmica e Uso Dinâmico</p>
     </header>
 
-    <div class="container">
-        <section class="formula-section">
-            <h2>Modelo Matemático</h2>
-            <p style="margin-top: 10px; color: var(--text-muted);">
-                A fórmula avalia o estresse mecânico e o histórico de manutenções em minutos, catapultando o risco através da dupla aplicação logarítmica sobre a função Gamma.
-            </p>
+    <main class="dashboard-container">
+        
+        <section class="panel left-panel">
+            <h2 style="color: #fff; margin-bottom: 20px; font-weight: 800;">Alvos de Propulsão</h2>
             
-            <div class="formula-display">
+            <div class="image-gallery">
+                <img src="https://images.unsplash.com/photo-1580273916550-e323be2ae537?auto=format&fit=crop&q=80&w=400" alt="Motor de Carro">
+                <img src="https://images.unsplash.com/photo-1544331487-194129759ce9?auto=format&fit=crop&q=80&w=400" alt="Turbina de Avião">
+                <img src="https://images.unsplash.com/photo-1517976487492-5750f3195933?auto=format&fit=crop&q=80&w=400" alt="Motor de Foguete">
+            </div>
+
+            <h3 style="color: var(--blue-primary); margin-top: 30px;">Algoritmo Estrutural</h3>
+            
+            <div class="math-container">
                 $$ R = \frac{\left(1 + \frac{1}{t_c}\right)^{t_c} \cdot \ln\left(\ln\left(\Gamma(\alpha + 2)^{t_c}\right)\right) \cdot e^{\alpha \cdot \lambda}}{u} $$
             </div>
 
-            <ul style="color: var(--text-muted); margin-left: 20px; font-size: 0.9rem;">
-                <li><strong>tc:</strong> Tempo desde o último conserto (em minutos).</li>
-                <li><strong>u:</strong> Tempo de uso diário médio (em minutos).</li>
-                <li><strong>λ (Lambda):</strong> Falhas/ano ÷ 365.</li>
-                <li><strong>α (Alpha):</strong> Ajuste dinâmico com base no módulo |tc - u|/(tc+1).</li>
+            <ul class="theory-list">
+                <li>O sistema processa todas as variáveis de tempo estritamente em <strong>minutos</strong>.</li>
+                <li><strong>Gama (Γ):</strong> Catapulta o estresse acumulado. Processado como logaritmo duplo para evitar <i>overflow</i> matemático.</li>
+                <li><strong>Alpha (α):</strong> Dinâmico. Se <i>tc = 0</i>, α = ln(|u|). Se <i>tc = u</i>, o numerador vira 1. Regra geral: módulo de tc menos u.</li>
+                <li><strong>Euler (e):</strong> Fator de maturação limitante sobre as falhas anuais.</li>
             </ul>
-
-            <img src="https://images.unsplash.com/photo-1517976487492-5750f3195933?auto=format&fit=crop&q=80&w=800" alt="Turbina de Avião" class="engine-image">
         </section>
 
-        <section class="calculator-panel">
-            <h2 style="color: #fff; margin-bottom: 25px;">Parâmetros do Motor</h2>
+        <section class="panel right-panel">
+            <h2 class="form-title">Console de Telemetria</h2>
+            
             <form id="engineForm">
-                
-                <div class="form-group">
-                    <label>Tipo de Motor</label>
+                <div class="input-group">
+                    <label>Categoria do Equipamento</label>
                     <select id="engineType">
-                        <option value="Carro">Motor de Combustão (Carro)</option>
-                        <option value="Turbina">Turbina Aeronáutica</option>
-                        <option value="Foguete">Motor de Foguete (Propulsão)</option>
-                        <option value="Eletrico">Motor Elétrico Industrial</option>
+                        <option value="Combustão">Motor V8 / V6 (Automotivo)</option>
+                        <option value="Aeroespacial">Turbofã (Aeroespacial)</option>
+                        <option value="Propulsor">Propulsor Foguete (Espacial)</option>
+                        <option value="Elétrico">Motor Elétrico Industrial</option>
                     </select>
                 </div>
 
-                <div class="form-group">
-                    <label>Falhas nos últimos 365 dias</label>
-                    <input type="number" id="breakdowns" value="2" min="0" step="1" required>
+                <div class="input-group">
+                    <label>Número de falhas nos últimos 365 dias (Gera o λ)</label>
+                    <input type="number" id="failures" value="2" min="0" step="1" required>
                 </div>
 
-                <div class="form-group">
-                    <label>Tempo desde o último conserto (em DIAS)</label>
+                <div class="input-group">
+                    <label>Tempo desde o último conserto (Em Dias)</label>
                     <input type="number" id="tc_days" value="90" min="0" step="0.1" required>
-                    <small style="color: var(--text-muted); font-size: 0.8rem;">O sistema converterá para minutos (tc).</small>
                 </div>
 
-                <div class="form-group">
-                    <label>Tempo de uso médio diário (em HORAS)</label>
-                    <input type="number" id="u_hours" value="18" min="0" max="24" step="0.1" required>
-                    <small style="color: var(--text-muted); font-size: 0.8rem;">O sistema converterá para minutos (u).</small>
+                <div class="input-group">
+                    <label>Uso médio diário (Em Horas)</label>
+                    <input type="number" id="u_hours" value="18" min="0.1" max="24" step="0.1" required>
                 </div>
 
-                <button type="submit" class="btn-calc">Processar Confiabilidade</button>
+                <button type="submit" class="btn-process">Processar Confiabilidade</button>
             </form>
-        </section>
 
-        <section class="result-dashboard" id="resultDashboard">
-            <h2 style="color: var(--accent-blue);">Relatório de Telemetria Analítica</h2>
-            <p id="systemMessage" style="color: var(--text-muted);"></p>
-            
-            <div class="result-grid">
-                <div class="metric-card">
-                    <label>Índice R (Perigo)</label>
-                    <div class="metric-value" id="valR" style="color: var(--accent-blue);">0.000</div>
-                </div>
-                <div class="metric-card">
-                    <label>Tempo Conserto (tc - min)</label>
-                    <div class="metric-value" id="valTc">0</div>
-                </div>
-                <div class="metric-card">
-                    <label>Tempo Uso (u - min)</label>
-                    <div class="metric-value" id="valU">0</div>
-                </div>
-                <div class="metric-card">
-                    <label>Fator Alfa (α)</label>
-                    <div class="metric-value" id="valAlpha">0.000</div>
+            <div class="telemetry-results" id="telemetryPanel">
+                <div class="result-header">Índice Dinâmico R (Risco)</div>
+                <div class="result-r" id="valR">0.000000</div>
+                <div class="result-status" id="statusMessage">Aguardando...</div>
+
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div class="stat-label">TC Analisado (Minutos)</div>
+                        <div class="stat-val" id="valTcMin">0</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Uso Diário (Minutos)</div>
+                        <div class="stat-val" id="valUMin">0</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Fator de Distância (α)</div>
+                        <div class="stat-val" id="valAlpha">0.000</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Taxa de Falha (λ)</div>
+                        <div class="stat-val" id="valLambda">0.000</div>
+                    </div>
                 </div>
             </div>
         </section>
-    </div>
+
+    </main>
 
     <script>
-        // Aproximação de Lanczos para a Função Gamma Γ(z)
-        // Necessário pois JS não tem Math.gamma nativo
+        // ==========================================
+        // 1. APROXIMAÇÃO DE LANCZOS (FUNÇÃO GAMMA)
+        // ==========================================
         function gamma(z) {
-            const g = 7;
             const p = [
-                0.99999999999980993,
-                676.5203681218851,
-                -1259.1392167224028,
-                771.32342877765313,
-                -176.61502916214059,
-                12.507343278686905,
-                -0.13857109526572012,
-                9.9843695780195716e-6,
-                1.5056327351493116e-7
+                0.99999999999980993, 676.5203681218851, -1259.1392167224028,
+                771.32342877765313, -176.61502916214059, 12.507343278686905,
+                -0.13857109526572012, 9.9843695780195716e-6, 1.5056327351493116e-7
             ];
+            const g = 7;
             if (z < 0.5) return Math.PI / (Math.sin(Math.PI * z) * gamma(1 - z));
             z -= 1;
             let x = p[0];
@@ -360,86 +434,110 @@ components.html(html_code, height=1200, scrolling=True)
             return Math.sqrt(2 * Math.PI) * Math.pow(t, z + 0.5) * Math.exp(-t) * x;
         }
 
+        // ==========================================
+        // 2. MOTOR DE CÁLCULO E INTERFACE
+        // ==========================================
         document.getElementById('engineForm').addEventListener('submit', function(e) {
             e.preventDefault();
 
-            // 1. Captura de Dados
-            const breakdowns = parseFloat(document.getElementById('breakdowns').value);
+            // Captura
+            const failures = parseFloat(document.getElementById('failures').value);
             const tc_days = parseFloat(document.getElementById('tc_days').value);
             const u_hours = parseFloat(document.getElementById('u_hours').value);
-            const engineType = document.getElementById('engineType').value;
 
-            // 2. Conversão Estrita para Minutos
-            const tc = tc_days * 24 * 60; // Dias para minutos
-            const u = u_hours * 60;       // Horas para minutos
+            // Conversão Obrigatória para Minutos
+            const tc = tc_days * 24 * 60;
+            const u = u_hours * 60;
 
-            // Tratamento de divisão por zero caso u seja 0
-            if (u === 0) {
-                alert("O uso diário não pode ser zero absoluto para o denominador da fórmula.");
-                return;
-            }
+            // Variável Lambda (λ)
+            const lambda = failures / 365.0;
 
-            // 3. Cálculo do Lambda (λ)
-            const lambda = breakdowns / 365.0;
-
-            // 4. Cálculo rigoroso do Alfa (α) conforme regras de contorno
+            // Regras Estritas do Fator Alfa (α)
             let alpha = 0;
             if (tc === 0) {
-                // Numerador vira ln(|u|)
-                alpha = Math.log(Math.abs(u)) / 1; 
+                alpha = Math.log(Math.abs(u)) / 1; // tc é 0, denominador seria 1
             } else if (u === tc) {
-                // Numerador vira 1
-                alpha = 1 / (tc + 1);
+                alpha = 1 / (tc + 1); // Numerador vira 1
             } else {
-                // Regra Geral: Módulo
-                alpha = Math.abs(tc - u) / (tc + 1);
+                alpha = Math.abs(tc - u) / (tc + 1); // Regra Geral
             }
 
-            // 5. O Termo Logaritmo Duplo da Gama: ln(ln( Γ(α + 2)^tc ))
-            // Usamos a propriedade logarítmica para evitar overflow no processador: ln(x^y) = y*ln(x)
-            const gammaVal = gamma(alpha + 2);
-            // Prevenção de logaritmo negativo caso a gamma seja 1 ou menor e dê problema no segundo ln
-            let innerLog = Math.log(gammaVal);
-            if (innerLog <= 0) innerLog = 0.0001; // Proteção matemática de software
+            // ==========================================
+            // IMPLEMENTAÇÃO RIGOROSA DA FÓRMULA
+            // ==========================================
             
-            const outerLogTerm = Math.log(tc * innerLog);
+            // Termo 1: Euler: (1 + 1/tc)^tc
+            let eulerTerm = 1; // Padrão se tc = 0
+            if (tc > 0) {
+                eulerTerm = Math.pow((1 + (1 / tc)), tc);
+            }
 
-            // 6. O Termo de Euler: (1 + 1/tc)^tc
-            // Tratamento limite se tc for 0 para evitar Infinity/NaN
-            const eulerTerm = (tc === 0) ? 1 : Math.pow((1 + (1 / tc)), tc);
+            // Termo 2: Logaritmo Duplo da Gama: ln(ln(Γ(α + 2)^tc))
+            // Propriedade algoritmica para evitar travamento: ln(tc * ln(Γ))
+            const gammaVal = gamma(alpha + 2);
+            let innerLog = Math.log(gammaVal);
+            
+            // Proteção contra logaritmo de número negativo/zero
+            if (innerLog <= 0) innerLog = 0.000001; 
+            
+            let logLogTerm = 0;
+            if (tc > 0) {
+                const multiLog = tc * innerLog;
+                logLogTerm = multiLog > 0 ? Math.log(multiLog) : 0;
+            } else {
+                logLogTerm = 0; // Se tc=0, não há acumulo temporal para catapulta
+            }
 
-            // 7. O Termo Exponencial: e^(α * λ)
+            // Termo 3: Exponencial: e^(α * λ)
             const expTerm = Math.exp(alpha * lambda);
 
-            // 8. O Cálculo Final de R
-            const R = (eulerTerm * outerLogTerm * expTerm) / u;
-
-            // 9. Atualização da UI
-            document.getElementById('resultDashboard').style.display = 'block';
-            
-            const rDisplay = document.getElementById('valR');
-            rDisplay.innerText = R.toFixed(6);
-            
-            // Lógica de Cores baseada no risco
-            if(R > 1.0) {
-                rDisplay.style.color = "#ff4444"; // Vermelho Crítico
-                document.getElementById('systemMessage').innerHTML = `ALERTA CRÍTICO: O ${engineType} ultrapassou o limite operacional seguro de confiabilidade.`;
-            } else if (R > 0.5) {
-                rDisplay.style.color = "#ffb86c"; // Amarelo Alerta
-                document.getElementById('systemMessage').innerHTML = `ATENÇÃO: Fadiga moderada detectada no ${engineType}. Planejar manutenção.`;
-            } else {
-                rDisplay.style.color = var(--accent-green); // Verde Seguro
-                document.getElementById('systemMessage').innerHTML = `OPERAÇÃO SEGURA: O ${engineType} opera dentro das margens toleráveis.`;
+            // FÓRMULA FINAL R
+            let R = 0;
+            if (u > 0) {
+                R = (eulerTerm * logLogTerm * expTerm) / u;
             }
 
-            document.getElementById('valTc').innerText = tc.toLocaleString('pt-BR');
-            document.getElementById('valU').innerText = u.toLocaleString('pt-BR');
-            document.getElementById('valAlpha').innerText = alpha.toFixed(4);
+            // ==========================================
+            // ATUALIZAÇÃO DO DASHBOARD FRONT-END
+            // ==========================================
+            const panel = document.getElementById('telemetryPanel');
+            const displayR = document.getElementById('valR');
+            const statusMsg = document.getElementById('statusMessage');
 
-            // Rola a tela suavemente até os resultados
-            document.getElementById('resultDashboard').scrollIntoView({ behavior: 'smooth' });
+            panel.style.display = 'block';
+            displayR.innerText = R.toFixed(6);
+
+            // Lógica de Cores e Alertas
+            if (R > 1.0) {
+                displayR.style.color = "#ff4444"; // Vermelho
+                panel.style.borderLeftColor = "#ff4444";
+                statusMsg.innerText = "PERIGO: LIMITE ESTRUTURAL ULTRAPASSADO";
+                statusMsg.style.backgroundColor = "rgba(255, 68, 68, 0.2)";
+                statusMsg.style.color = "#ff4444";
+            } else if (R > 0.5) {
+                displayR.style.color = "#ffb86c"; // Laranja
+                panel.style.borderLeftColor = "#ffb86c";
+                statusMsg.innerText = "ALERTA: FADIGA MODERADA / ALTA";
+                statusMsg.style.backgroundColor = "rgba(255, 184, 108, 0.2)";
+                statusMsg.style.color = "#ffb86c";
+            } else {
+                displayR.style.color = "var(--green-primary)"; // Verde
+                panel.style.borderLeftColor = "var(--green-primary)";
+                statusMsg.innerText = "NOMINAL: OPERAÇÃO SEGURA";
+                statusMsg.style.backgroundColor = "var(--green-glow)";
+                statusMsg.style.color = "var(--green-primary)";
+            }
+
+            // Preenchimento das métricas menores
+            document.getElementById('valTcMin').innerText = tc.toLocaleString('pt-BR');
+            document.getElementById('valUMin').innerText = u.toLocaleString('pt-BR');
+            document.getElementById('valAlpha').innerText = alpha.toFixed(5);
+            document.getElementById('valLambda').innerText = lambda.toFixed(5);
         });
     </script>
 </body>
 </html>
+"""
 
+# Renderiza o HTML dentro do Streamlit ocupando a tela de forma harmoniosa
+components.html(html_code, height=1100, scrolling=True)
