@@ -556,7 +556,7 @@ html_code = r"""
         <div class="single-container panel">
             <div class="panel-title">
                 Modelagem Quimera (Multi-Fator)
-                <span style="font-size: 0.9rem; color: var(--text-muted); font-weight: 400;">v4.0.0</span>
+                <span style="font-size: 0.9rem; color: var(--text-muted); font-weight: 400;">v4.1.0</span>
             </div>
             
             <p class="theory-text">
@@ -848,55 +848,70 @@ html_code = r"""
                     const expTerm = Math.exp(alpha * lambda);
 
                     // 4.5. Síntese Final do Índice R
-                    let R = 0;
+                    let rawR = 0;
                     if (u > 0) {
-                        R = (expTerm * logLogTerm * rootTcd * eulerTerm) / u;
+                        rawR = (expTerm * logLogTerm * rootTcd * eulerTerm) / u;
                     }
+
+                    // 4.6 EXTRAÇÃO DE MAGNITUDE (CORREÇÃO DE SINAL DA EQUAÇÃO)
+                    // Como ln(ln(2)) resulta em um número negativo, extraímos o valor absoluto 
+                    // para alimentar os limiares de risco do sistema.
+                    let R = Math.abs(rawR);
 
                     // 5. ATUALIZAÇÃO DO FRONT-END E LÓGICA DE CORES
                     const displayR = document.getElementById('valR');
                     const statusMsg = document.getElementById('statusMessage');
 
-                    // Formatação do número usando notação científica se o número for ínfimo, ou com 4 casas decimais 
-                    displayR.innerText = R < 0.001 ? R.toExponential(4) : R.toFixed(4);
+                    // FORMATO OBRIGATÓRIO: Remoção da notação científica. Forçando 6 casas decimais.
+                    displayR.innerText = R.toFixed(6);
 
-                    // Lógica Condicional de Alertas Visuais
-                    if (R > 1.0) {
-                        // ESTADO: PERIGO (VERMELHO NEON)
+                    // LÓGICA CONDICIONAL DE ALERTAS VISUAIS (AS 4 FASES REQUERIDAS)
+                    if (R >= 0.0600) {
+                        // FASE 4: FALHA IMINENTE (VERMELHO NEON) -> Ex: 7000 dias
                         displayR.style.color = "var(--red-primary)";
                         displayR.style.textShadow = "0 0 20px var(--red-glow)";
                         panel.style.borderLeftColor = "var(--red-primary)";
-                        statusMsg.innerText = "CRÍTICO: COLAPSO ESTRUTURAL IMINENTE";
+                        statusMsg.innerText = "FALHA IMINENTE";
                         statusMsg.style.backgroundColor = "var(--red-glow)";
                         statusMsg.style.color = "var(--red-primary)";
                         statusMsg.style.border = "1px solid var(--red-primary)";
                     }
-                    else if (R > 0.5) {
-                        // ESTADO: ALERTA (LARANJA NEON)
+                    else if (R >= 0.0300) {
+                        // FASE 3: ALERTA (LARANJA NEON) -> Ex: Escalonamento entre 2000 e 5000 dias
                         displayR.style.color = "var(--orange-primary)";
                         displayR.style.textShadow = "0 0 20px var(--orange-glow)";
                         panel.style.borderLeftColor = "var(--orange-primary)";
-                        statusMsg.innerText = "ALERTA: FADIGA DE MATERIAL DETECTADA";
+                        statusMsg.innerText = "ALERTA";
                         statusMsg.style.backgroundColor = "var(--orange-glow)";
                         statusMsg.style.color = "var(--orange-primary)";
                         statusMsg.style.border = "1px solid var(--orange-primary)";
                     }
-                    else {
-                        // ESTADO: NOMINAL (VERDE NEON)
+                    else if (R >= 0.0100) {
+                        // FASE 2: SEGURO (VERDE NEON) -> Ex: 700 dias
                         displayR.style.color = "var(--green-primary)";
                         displayR.style.textShadow = "0 0 20px var(--green-glow)";
                         panel.style.borderLeftColor = "var(--green-primary)";
-                        statusMsg.innerText = "NOMINAL: INTEGRIDADE CONFIRMADA";
+                        statusMsg.innerText = "SEGURO";
                         statusMsg.style.backgroundColor = "var(--green-glow)";
                         statusMsg.style.color = "var(--green-primary)";
                         statusMsg.style.border = "1px solid var(--green-primary)";
                     }
+                    else {
+                        // FASE 1: EXTREMAMENTE SEGURO (AZUL NEON) -> Ex: 70 dias
+                        displayR.style.color = "var(--blue-primary)";
+                        displayR.style.textShadow = "0 0 20px var(--blue-glow)";
+                        panel.style.borderLeftColor = "var(--blue-primary)";
+                        statusMsg.innerText = "EXTREMAMENTE SEGURO";
+                        statusMsg.style.backgroundColor = "var(--blue-glow)";
+                        statusMsg.style.color = "var(--blue-primary)";
+                        statusMsg.style.border = "1px solid var(--blue-primary)";
+                    }
 
-                    // Alimentando a grade inferior de estatísticas isoladas 
-                    document.getElementById('valTcMin').innerText = tc.toLocaleString('pt-BR'); 
-                    document.getElementById('valUMin').innerText = u.toLocaleString('pt-BR'); 
-                    document.getElementById('valAlpha').innerText = alpha.toFixed(6); 
-                    document.getElementById('valLambda').innerText = lambda.toFixed(6); 
+                    // Alimentando a grade inferior de estatísticas isoladas
+                    document.getElementById('valTcMin').innerText = tc.toLocaleString('pt-BR');
+                    document.getElementById('valUMin').innerText = u.toLocaleString('pt-BR');
+                    document.getElementById('valAlpha').innerText = alpha.toFixed(6);
+                    document.getElementById('valLambda').innerText = lambda.toFixed(6);
 
                 } catch (error) {
                     console.error("Falha Crítica no Processador Matemático:", error);
