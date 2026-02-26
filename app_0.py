@@ -8,7 +8,7 @@ import streamlit.components.v1 as components
 # =====================================================================
 st.set_page_config(
     page_title="EngineRel | Reliability Analytics",
-    page_icon="⚙️",
+    page_icon=" ⚙️ ",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
@@ -40,27 +40,27 @@ html_code = r"""
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Sistema de análise de confiabilidade de propulsores baseado em fadiga logarítmica.">
+    <meta name="description" content="Sistema de análise de confiabilidade de propulsores baseado na Equação Quimera.">
     <title>EngineRel - Dashboard Telemétrico</title>
-    
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800;900&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
-    
+
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    
+
     <style>
         /* =====================================================================
            SISTEMA DE DESIGN: VARIÁVEIS GLOBAIS
            Definição de paleta de cores, tipografia e espaçamentos.
-           ===================================================================== */
+        ===================================================================== */
         :root {
             /* Paleta de Cores de Fundo */
             --bg-base: #09090b;
             --bg-panel: #18181b;
             --bg-input: #000000;
-            
+
             /* Paleta de Cores de Destaque (Neon) */
             --blue-primary: #00d2ff;
             --blue-glow: rgba(0, 210, 255, 0.3);
@@ -76,28 +76,28 @@ html_code = r"""
             
             --orange-primary: #ffb86c;
             --orange-glow: rgba(255, 184, 108, 0.2);
-            
+
             /* Tipografia e Bordas */
             --text-main: #e4e4e7;
             --text-muted: #a1a1aa;
             --border-color: #27272a;
-            
+
             --font-ui: 'Inter', sans-serif;
             --font-code: 'JetBrains Mono', monospace;
-            
+
             /* Sombras Padrão */
             --shadow-panel: 0 10px 30px rgba(0, 0, 0, 0.8);
         }
 
         /* =====================================================================
            RESET E CONFIGURAÇÕES BÁSICAS
-           ===================================================================== */
+        ===================================================================== */
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
         }
-        
+
         body {
             background-color: var(--bg-base);
             color: var(--text-main);
@@ -127,7 +127,7 @@ html_code = r"""
 
         /* =====================================================================
            CABEÇALHO E NAVEGAÇÃO (TABS)
-           ===================================================================== */
+        ===================================================================== */
         .app-header {
             text-align: center;
             margin-bottom: 30px;
@@ -201,7 +201,7 @@ html_code = r"""
 
         /* =====================================================================
            ESTRUTURA DE GRIDS E PAINÉIS
-           ===================================================================== */
+        ===================================================================== */
         .grid-container {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -214,7 +214,7 @@ html_code = r"""
             max-width: 1000px;
             margin: 0 auto;
         }
-        
+
         .panel {
             background-color: var(--bg-panel);
             border: 1px solid var(--border-color);
@@ -250,7 +250,7 @@ html_code = r"""
 
         /* =====================================================================
            ABA 1: TEORIA E SISTEMAS DINÂMICOS
-           ===================================================================== */
+        ===================================================================== */
         .theory-text {
             font-size: 1.1rem;
             color: var(--text-muted);
@@ -264,7 +264,7 @@ html_code = r"""
             font-weight: 800;
             text-shadow: 0 0 10px var(--purple-glow);
         }
-        
+
         .math-box {
             background-color: var(--bg-input);
             padding: 30px;
@@ -291,7 +291,7 @@ html_code = r"""
         }
 
         .feature-list li::before {
-            content: '⊳';
+            content: ' ⊳ ';
             position: absolute;
             left: 0;
             color: var(--blue-primary);
@@ -300,7 +300,7 @@ html_code = r"""
 
         /* =====================================================================
            ABA 2: DASHBOARD (GALERIA E FORMULÁRIOS)
-           ===================================================================== */
+        ===================================================================== */
         .image-gallery {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -324,7 +324,7 @@ html_code = r"""
             box-shadow: 0 0 20px var(--blue-glow);
             transform: scale(1.02);
         }
-
+        
         .alert-box {
             background: var(--bg-input);
             padding: 20px;
@@ -355,7 +355,7 @@ html_code = r"""
             letter-spacing: 1px;
         }
 
-        .input-group input, 
+        .input-group input,
         .input-group select {
             width: 100%;
             background-color: var(--bg-input);
@@ -368,7 +368,7 @@ html_code = r"""
             transition: all 0.3s ease;
         }
 
-        .input-group input:focus, 
+        .input-group input:focus,
         .input-group select:focus {
             outline: none;
             border-color: var(--blue-primary);
@@ -411,7 +411,7 @@ html_code = r"""
 
         /* =====================================================================
            RESULTADOS TELEMÉTRICOS
-           ===================================================================== */
+        ===================================================================== */
         .telemetry-results {
             display: none;
             margin-top: 30px;
@@ -474,7 +474,7 @@ html_code = r"""
 
         /* =====================================================================
            RODAPÉ E LOADING SIMULATION
-           ===================================================================== */
+        ===================================================================== */
         .loading-spinner {
             display: none;
             text-align: center;
@@ -501,7 +501,7 @@ html_code = r"""
 
         /* =====================================================================
            MEDIA QUERIES (RESPONSIVIDADE)
-           ===================================================================== */
+        ===================================================================== */
         @media (max-width: 1200px) {
             .grid-container {
                 gap: 20px;
@@ -555,20 +555,20 @@ html_code = r"""
     <main id="tab-theory" class="tab-content active" role="tabpanel">
         <div class="single-container panel">
             <div class="panel-title">
-                Modelagem Super-Quadrática
-                <span style="font-size: 0.9rem; color: var(--text-muted); font-weight: 400;">v2.5.0</span>
+                Modelagem Quimera (Multi-Fator)
+                <span style="font-size: 0.9rem; color: var(--text-muted); font-weight: 400;">v4.0.0</span>
             </div>
-
+            
             <p class="theory-text">
                 A fórmula do <strong>EngineRel</strong> transcende a simples métrica de falhas pontuais. 
                 Ela é uma abstração matemática projetada para descrever o comportamento de um 
-                <span class="theory-highlight">Sistema Dinâmico Não-Linear</span>. 
+                <span class="theory-highlight">Sistema Dinâmico Não-Linear</span>.
                 Sistemas mecânicos de alta complexidade operam em um estado de equilíbrio tênue, 
                 onde o tempo absoluto, o desgaste físico e a consistência de uso interagem de forma caótica.
             </p>
 
             <div class="math-box">
-                $$ R = \frac{\left(1 + \frac{1}{t_c}\right)^{t_c} \cdot \left(\ln\left(\ln\left(\Gamma(\alpha + 2)^{t_c}\right)\right)\right)^{2.5} \cdot e^{\alpha \cdot \lambda}}{u} $$
+                $$ R = \frac{e^{\alpha \lambda} \cdot \ln(\ln(\Gamma(\alpha + 2))) \cdot \sqrt{t_{cd}} \cdot \left(1 + \frac{1}{t_c}\right)^{t_c}}{u} $$
             </div>
 
             <h3 style="color: #ffffff; margin: 40px 0 20px 0; font-weight: 800;">Análise Vetorial do Sistema</h3>
@@ -581,16 +581,10 @@ html_code = r"""
                     que as falhas prematuras (mortalidade infantil de engenharia) foram superadas.
                 </li>
                 <li>
-                    <strong>Bifurcação por Fadiga (Expoente 2.5):</strong> Elevamos a compressão do logaritmo duplo 
-                    a \( 2.5 \). Na teoria dos sistemas dinâmicos, isso induz um crescimento 
-                    <span class="theory-highlight">super-quadrático</span>. Após um período prolongado de latência, 
-                    a degradação em nível molecular rompe o equilíbrio estrutural, e o risco absoluto (\( R \)) 
-                    dispara agressivamente, modelando a fase de desgaste da Curva da Banheira.
+                    <strong>A Raiz de Desgaste (\( \sqrt{t_{cd}} \)):</strong> Introduzida para modelar a fadiga de material a longo prazo, converte os dias corridos (\( t_{cd} \)) num fator de escalada geométrica, suavizando a curva de risco nas fases iniciais.
                 </li>
                 <li>
-                    <strong>Variáveis de Estado Contínuas:</strong> O volume de trabalho constante (\( u \)) no denominador 
-                    funciona como uma "força de amortecimento viscoso". Ativos mecânicos em operação ininterrupta 
-                    tendem a comprovar sua integridade material, forçando o algoritmo a diluir o risco acumulado.
+                    <strong>Micro-Falhas e Função Gama:</strong> O bloco logarítmico duplo de Gama garante que a taxa de estragos (\( \lambda \)) ponderada pelas condições limítrofes operacionais (\( \alpha \)) amorteça números infinitos sem perder o rasto do estado microscópico da mecânica.
                 </li>
             </ul>
         </div>
@@ -601,31 +595,30 @@ html_code = r"""
             
             <section class="panel">
                 <div class="panel-title">
-                    Alvos de Propulsão
-                    <span style="font-size: 1.2rem;">🚀</span>
+                    Alvos de Propulsão 
+                    <span style="font-size: 1.2rem;"> 🚀 </span>
                 </div>
                 
                 <div class="image-gallery">
                     <img src="https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?auto=format&fit=crop&q=80" alt="Motor de Combustão V8 em operação com alta temperatura">
                     <img src="https://images.unsplash.com/photo-1541185933-ef5d8ed016c2?auto=format&fit=crop&q=80" alt="Exaustão de um propulsor de foguete espacial durante lançamento">
                 </div>
-                
+
                 <div class="alert-box">
                     <p>
-                        <strong>⚠️ Aviso de Restrição do Sistema:</strong><br>
-                        O núcleo algorítmico do índice \( R \) foi atualizado para a sensibilidade crítica (2.5). 
-                        Tempos ociosos prolongados ou obsolescência estrutural gerarão picos exponenciais no cálculo de risco. 
-                        Valide rigorosamente a entrada de Uso Diário (\( u \)) para evitar falsos positivos de colapso.
+                        <strong> ⚠️  Aviso de Restrição do Sistema:</strong><br>
+                        O núcleo algorítmico do índice \( R \) foi atualizado para a arquitetura Quimera. 
+                        A complexidade analítica integra micro-falhas (\( \alpha \) e \( \lambda \)) com a elegância da degradação estrutural em dias (\( \sqrt{t_{cd}} \)). Valide rigorosamente os inputs para evitar cálculos assintóticos imprevistos.
                     </p>
                 </div>
             </section>
 
             <section class="panel">
                 <div class="panel-title">
-                    Console de Telemetria
-                    <span style="font-size: 1.2rem;">⏱️</span>
+                    Console de Telemetria 
+                    <span style="font-size: 1.2rem;"> ⏱️ </span>
                 </div>
-                
+
                 <form id="engineForm" novalidate>
                     <div class="input-group">
                         <label for="engineType">Perfil Estrutural do Equipamento</label>
@@ -658,7 +651,7 @@ html_code = r"""
                     <button type="submit" class="btn-process" id="btnSubmit">
                         Processar Vetor de Risco (R)
                     </button>
-                    
+
                     <div class="loading-spinner" id="loadingState">
                         [ CALIBRANDO MATRIZ DE DADOS... AGUARDE ]
                     </div>
@@ -692,10 +685,9 @@ html_code = r"""
                     </div>
                 </div>
             </section>
-
         </div>
     </main>
-    
+
     <footer>
         EngineRel Analytics System &copy; 2026. Desenvolvido para modelagem de ambientes extremos.
     </footer>
@@ -719,7 +711,7 @@ html_code = r"""
                 buttons.forEach(btn => {
                     btn.classList.remove('active');
                 });
-                
+
                 // Ativa a aba solicitada e o botão correspondente
                 document.getElementById(tabId).classList.add('active');
                 event.currentTarget.classList.add('active');
@@ -738,33 +730,33 @@ html_code = r"""
         function gamma(z) {
             // Constantes de Lanczos para g = 7
             const p = [
-                0.99999999999980993, 
-                676.5203681218851, 
-                -1259.1392167224028, 
-                771.32342877765313, 
-                -176.61502916214059, 
-                12.507343278686905, 
-                -0.13857109526572012, 
-                9.9843695780195716e-6, 
+                0.99999999999980993,
+                676.5203681218851,
+                -1259.1392167224028,
+                771.32342877765313,
+                -176.61502916214059,
+                12.507343278686905,
+                -0.13857109526572012,
+                9.9843695780195716e-6,
                 1.5056327351493116e-7
             ];
-            
+
             const g = 7;
-            
+
             // Fórmula de reflexão se z < 0.5
             if (z < 0.5) {
                 return Math.PI / (Math.sin(Math.PI * z) * gamma(1 - z));
             }
-            
+
             z -= 1;
             let x = p[0];
-            
+
             for (let i = 1; i < g + 2; i++) {
                 x += p[i] / (z + i);
             }
-            
+
             let t = z + g + 0.5;
-            
+
             // Equação final de Lanczos
             return Math.sqrt(2 * Math.PI) * Math.pow(t, z + 0.5) * Math.exp(-t) * x;
         }
@@ -802,79 +794,71 @@ html_code = r"""
             const btnSubmit = document.getElementById('btnSubmit');
             const loadingState = document.getElementById('loadingState');
             const panel = document.getElementById('telemetryPanel');
-            
+
             btnSubmit.style.display = 'none';
             loadingState.style.display = 'block';
             panel.style.display = 'none';
 
             // Simulação assíncrona para efeito de processamento de dados (1.5 segundos)
             setTimeout(() => {
-                
+
                 try {
-                    // 2. CONVERSÃO DE UNIDADES PARA A BASE MATEMÁTICA (MINUTOS)
+                    // 2. CONVERSÃO DE UNIDADES PARA A BASE MATEMÁTICA (MINUTOS E DIAS)
                     const tc = tcDays * 24 * 60; // Dias transformados em minutos
                     const u = uHours * 60;       // Horas transformadas em minutos
-                    
-                    // Cálculo da taxa histórica de falha ao ano
+
+                    // Cálculo da taxa histórica de falha ao ano (λ)
                     const lambda = failures / 365.0;
 
-                    // 3. DEFINIÇÃO RIGOROSA DO FATOR ALFA (α)
-                    let alpha = 0;
+                    // 3. DEFINIÇÃO RIGOROSA DO FATOR ALFA (α) [SEGUNDO AS ESPECIFICAÇÕES DO MODELO]
+                    let numAlpha = 0;
                     if (tc === 0) {
-                        // Trata divisão por zero se o tempo desde conserto for zero
-                        alpha = Math.log(Math.abs(u)) / 1;
-                    } else if (u === tc) {
-                        // Previne anulação completa caso uso seja exatamente igual ao tempo
-                        alpha = 1 / (tc + 1);
+                        numAlpha = Math.log(Math.abs(u));
+                    } else if (tc === u) {
+                        numAlpha = 1;
                     } else {
-                        // Equação principal do fator de desvio de matriz
-                        alpha = Math.abs(tc - u) / (tc + 1);
+                        numAlpha = Math.abs(tc - u);
                     }
+                    const alpha = numAlpha / (tc + 1);
 
-                    // 4. RESOLUÇÃO DA EQUAÇÃO DE RISCO (R)
+                    // 4. RESOLUÇÃO DA EQUAÇÃO DE RISCO (R) - MODELO QUIMERA
                     
-                    // 4.1. Termo Estabilizador de Euler
+                    // 4.1. Termo de Fadiga Temporal (Raiz de tcd)
+                    const rootTcd = Math.sqrt(tcDays);
+
+                    // 4.2. Termo Estabilizador de Euler
                     let eulerTerm = 1;
                     if (tc > 0) {
                         eulerTerm = Math.pow((1 + (1 / tc)), tc);
                     }
 
-                    // 4.2. Termo Catapulta de Fadiga (Logaritmo Duplo da Função Gama)
+                    // 4.3. Termo de Micro-Fadiga (Logaritmo Duplo da Função Gama)
                     const gammaVal = gamma(alpha + 2);
                     let innerLog = Math.log(gammaVal);
-                    
-                    // Proteção de domínio para evitar NaN (Not a Number) em logaritmos naturais
+
+                    // Proteção de domínio para evitar NaN em logaritmos naturais
                     if (innerLog <= 0) {
                         innerLog = 0.000001; 
                     }
-                    
-                    let logLogTerm = 0;
-                    if (tc > 0) {
-                        const multiLog = tc * innerLog;
-                        
-                        // *** O EXPOENTE 2.5 APLICADO AQUI ***
-                        if (multiLog > 0) {
-                            logLogTerm = Math.pow(Math.log(multiLog), 2.5);
-                        } else {
-                            logLogTerm = 0;
-                        }
-                    }
 
-                    // 4.3. Termo Exponencial de Maturação de Falhas
+                    let logLogTerm = Math.log(innerLog);
+                    if (logLogTerm < 0 && tc === 0) { logLogTerm = 0; } // Trava de segurança no ponto zero
+
+                    // 4.4. Termo Exponencial de Maturação de Falhas
                     const expTerm = Math.exp(alpha * lambda);
-                    
-                    // 4.4. Síntese Final do Índice R
+
+                    // 4.5. Síntese Final do Índice R
                     let R = 0;
                     if (u > 0) {
-                        R = (eulerTerm * logLogTerm * expTerm) / u;
+                        R = (expTerm * logLogTerm * rootTcd * eulerTerm) / u;
                     }
 
                     // 5. ATUALIZAÇÃO DO FRONT-END E LÓGICA DE CORES
                     const displayR = document.getElementById('valR');
                     const statusMsg = document.getElementById('statusMessage');
 
-                    // Formatação do número para 4 casas decimais para legibilidade
-                    displayR.innerText = R.toFixed(4);
+                    // Formatação do número usando notação científica se o número for ínfimo, ou com 4 casas decimais 
+                    displayR.innerText = R < 0.001 ? R.toExponential(4) : R.toFixed(4);
 
                     // Lógica Condicional de Alertas Visuais
                     if (R > 1.0) {
@@ -886,7 +870,7 @@ html_code = r"""
                         statusMsg.style.backgroundColor = "var(--red-glow)";
                         statusMsg.style.color = "var(--red-primary)";
                         statusMsg.style.border = "1px solid var(--red-primary)";
-                    } 
+                    }
                     else if (R > 0.5) {
                         // ESTADO: ALERTA (LARANJA NEON)
                         displayR.style.color = "var(--orange-primary)";
@@ -896,7 +880,7 @@ html_code = r"""
                         statusMsg.style.backgroundColor = "var(--orange-glow)";
                         statusMsg.style.color = "var(--orange-primary)";
                         statusMsg.style.border = "1px solid var(--orange-primary)";
-                    } 
+                    }
                     else {
                         // ESTADO: NOMINAL (VERDE NEON)
                         displayR.style.color = "var(--green-primary)";
@@ -908,11 +892,11 @@ html_code = r"""
                         statusMsg.style.border = "1px solid var(--green-primary)";
                     }
 
-                    // Alimentando a grade inferior de estatísticas isoladas
-                    document.getElementById('valTcMin').innerText = tc.toLocaleString('pt-BR');
-                    document.getElementById('valUMin').innerText = u.toLocaleString('pt-BR');
-                    document.getElementById('valAlpha').innerText = alpha.toFixed(6);
-                    document.getElementById('valLambda').innerText = lambda.toFixed(6);
+                    // Alimentando a grade inferior de estatísticas isoladas 
+                    document.getElementById('valTcMin').innerText = tc.toLocaleString('pt-BR'); 
+                    document.getElementById('valUMin').innerText = u.toLocaleString('pt-BR'); 
+                    document.getElementById('valAlpha').innerText = alpha.toFixed(6); 
+                    document.getElementById('valLambda').innerText = lambda.toFixed(6); 
 
                 } catch (error) {
                     console.error("Falha Crítica no Processador Matemático:", error);
